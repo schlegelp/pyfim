@@ -1,0 +1,428 @@
+#    This code is part of pymaid (http://www.github.com/schlegelp/pyfim).
+#    Copyright (C) 2017 Philipp Schlegel
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+
+
+import math
+
+import numpy as np 
+import pandas as pd
+
+import peakutils
+
+from pyfim import core, config
+defaults = config.default_parameters
+
+__all__ = ['stops','pause_turns','bending_strength',
+           'head_bends', 'peristalsis_efficiency',
+           'peristalsis_frequency' ]
+
+
+def stops(exp):
+    """ Calculates frequency of stops [Hz] for each object.
+
+    Notes
+    -----
+    This function counts the phases in which `go_phase` is zero. You can
+    control the minimum number of frames using the `MIN_STOP_PHASE` parameter
+    in the config file.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Returns
+    -------
+    Stop frequency [Hz]
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp)))
+
+    mean_freq = []
+
+    # Iterate over all objects
+    for obj in exp.go_phase:
+        # Find stop and go phases 
+        stop_phases = _binary_phases( exp.go_phase[obj].values, 
+                                      mode='OFF', 
+                                      min_len=defaults['MIN_STOP_PHASE'] )
+        # Add mean frequency
+        mean_freq.append( len(stop_phases) / ( exp.go_phase[obj].dropna().shape[0] / defaults['FPS'] ) )
+
+    return pd.Series(mean_freq, index=exp.go_phase.columns)
+
+def pause_turns(exp):
+    """ Calculates the frequency of pause-turns [Hz] for each object.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Notes
+    -----
+    This function counts the number of pause-turns by finding pauses and 
+    determining if the movement direction before and after differs. You can
+    control this behaviour by tuning the following paramters in the config 
+    file:
+        - `MIN_STOP_TIME`: minimum number of frames for a pause to be counted 
+                           as one.
+        - `MIN_GO_TIME`: minimum frames before and after the pause to be counted
+                         as pause-turn.
+        - `TURN_ANGLE_THRESHOLD`: minimum angular difference in movement 
+                                  direction before and after the pause.          
+
+    Returns
+    -------
+    Pause-Turn frequency [Hz]
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp)))   
+    
+    mean_freq = []
+
+    # Smooth moving direction using the median over X frames
+    smoothed_mov = exp.mov_direction.rolling( defaults['DIRECTION_SMOOTHING'] ).median()
+
+    # Iterate over all objects
+    for obj in exp.mov_direction:
+        # Find stop and go phases 
+        go_phases = _binary_phases( exp.go_phase[obj].values, mode='ON' )
+        
+        turns = 0
+        # Go over pairs of consecutive go phases
+        for this_go, next_go in zip( go_phases, go_phases[1:] ):            
+            # Skip if go time too short
+            if ( this_go[1] - this_go[0] ) < defaults['MIN_GO_TIME']:
+                continue
+            if ( next_go[1] - next_go[0] ) < defaults['MIN_GO_TIME']:
+                continue
+
+            # Skip if pause too short
+            if ( next_go[0] - this_go[1] ) < defaults['MIN_STOP_TIME']:
+                continue
+
+            # Get directions before and after pause
+            dir_before = smoothed_mov.loc[ this_go[1] - 1 , obj]
+            dir_after = smoothed_mov.loc[ next_go[0] + 1 , obj]
+
+            if math.fabs( dir_before - dir_after ) >= defaults['TURN_ANGLE_THRESHOLD']:
+                turns +=1
+
+        # Add mean frequency
+        mean_freq.append( turns / ( exp.mov_direction[obj].dropna().shape[0] / defaults['FPS'] ) )    
+
+    return pd.Series(mean_freq, index=exp.mov_direction.columns)
+
+
+def bending_strength(exp, during=None):
+    """ Calculates the median (!) bending strength for each object.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+    during :    {'stop','go',None}, optional
+                Use to restrict to stop or go phases.
+
+    Notes
+    -----
+    This function determines the bending strength by taking all bending
+    angles, thresholding them and getting the median bending angle. You can
+    change this behaviour using the following parameter(s) in the config file:
+        - `BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH`: minimum bending angle 
+
+    Returns
+    -------
+    Median bending strengths [°]
+                Returns NaN if no bends.
+    """
+
+    PERM_MODES = ['go','stop', None]
+
+    if during not in PERM_MODES:
+        raise ValueError('Unknown values for "during". Please use {0}'.format(PERM_MODES))
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp))) 
+
+    bend_strength = []
+
+    # Iterate over all objects
+    for obj in exp.bending:
+        if during == 'go':
+            this_bend = exp.bending[obj][ ( exp.go_phase[obj] == 1 ) & ( ~exp.bending[obj].isnull() ) ] 
+        elif during == 'stop':
+            this_bend = exp.bending[obj][ ( exp.go_phase[obj] == 0 ) & ( ~exp.bending[obj].isnull() ) ] 
+        else:
+            this_bend = exp.bending[obj]
+
+        # Get absolute bending angles and remove NaNs
+        abs_bend = ( this_bend - 180 ).abs().dropna()
+
+        # Filter to above threshold bendings
+        abs_bend = abs_bend[ abs_bend >= defaults['BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH'] ]        
+
+        # Add median frequency
+        bend_strength.append( np.median( abs_bend ) )
+
+    return pd.Series(bend_strength, index=exp.bending.columns)
+
+def head_bends(exp):
+    """ Calculates the head bend frequency [Hz] for each object.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Notes
+    -----
+    This function determines the number of head bends by taking all bending
+    angles, thresholding them and counting the number of bending phases of
+    a given minimum length. You can change this behaviour using the following 
+    parameter(s) in the config file:
+        - `BENDING_ANGLE_THRESHOLD`: minimum bending angle
+        - `MIN_BENDED_PHASE`: minimum consecutive number of frames above 
+                              angle threshold
+
+    Returns
+    -------
+    Mean head bending frequencies [Hz]
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp)))   
+    
+    mean_freq = []
+
+    # Iterate over all objects
+    for obj in exp.bending:
+        # Get absolute bending angles and remove NaNs
+        abs_bend = ( exp.bending[obj] - 180 ).abs().dropna()
+
+        # Get above threshold bendings
+        is_bend = abs_bend >= defaults['BENDING_ANGLE_THRESHOLD']
+
+        # Extract bending phases
+        bend_phases = _binary_phases( is_bend, mode='ON', min_len=defaults['MIN_BENDED_PHASE'] )        
+
+        # Add mean frequency
+        mean_freq.append( len(bend_phases) / ( abs_bend.shape[0] / defaults['FPS'] ) )
+    
+    return pd.Series(mean_freq, index=exp.bending.columns)
+
+def peristalsis_efficiency(exp):
+    """ Calculates the peristalsis efficiency for each object. The unit is
+    depending on the input data: [pixel/peristalsis] or [mm/peristalsis]
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Notes
+    -----
+    This function determines the number of peristalses by performing peak 
+    detection of the object's area in its go phases. The efficieny is the
+    distance (in pixel or mm) per peristalsis. You can change this behaviour 
+    using the following parameter(s) in the config file:
+        - `MIN_GO_PHASE`: minimum length of the go phases
+        - `MIN_PEAK_DIST`: minimal distance in frames between peristalses
+
+    Returns
+    -------
+    Mean peristalsis efficiency [Hz]
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp)))   
+    
+    mean_eff = []
+
+    # Here, we are filling in missing distances - for unknown reasons these values 
+    # are just missing sometimes
+    acc_dst_filled = exp.acc_dst.fillna(method='ffill')
+
+    # Iterate over all objects
+    for obj in exp.area:        
+        # Filter down to frames in which we have go_phase, area and acc_dst
+        filt = ( ~exp.area[obj].isnull() ) & ( ~exp.go_phase[obj].isnull() ) & ( ~exp.acc_dst[obj].isnull() )
+        area = exp.area[obj][ filt ].reset_index(drop=True)
+        go_phase = exp.go_phase[obj][ filt ].reset_index(drop=True)
+        acc_dst = exp.acc_dst[obj][ filt ].reset_index(drop=True)
+
+        # Get go phases
+        go_phases = _binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
+
+        # Turn go phases into list of frames
+        go_frames = np.array( [ f for l in [ np.arange( s,e ) for s,e in go_phases ] for f in l ] )
+
+        # Get area in go-phases (also make sure there is area measured)
+        go_area = area.iloc[ go_frames ]
+
+        if len(go_area) > 0:
+            # Detect peaks
+            indexes = peakutils.indexes( go_area.values, min_dist=defaults['MIN_PEAK_DIST'] )        
+
+            # Get distances travelled per go phase
+            go_acc_dist = sum( [  acc_dst_filled.loc[ e-1, obj ] -  acc_dst_filled.loc[ s, obj ] for s,e in go_phases ] )
+
+            # Get mean frequency
+            mean_eff.append( len(indexes) / go_acc_dist )
+        else:
+            mean_eff.append( np.nan )
+    
+    return pd.Series(mean_eff, index=exp.area.columns)
+
+def peristalsis_frequency(exp):
+    """ Calculates the peristalsis frequency [Hz] for each object.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Notes
+    -----
+    This function determines the number of peristalses by performing peak 
+    detection of the object's area in its go phases. You can change this 
+    behaviour using the following parameter(s) in the config file:
+        - `MIN_GO_PHASE`: minimum length of the go phases
+        - `MIN_PEAK_DIST`: minimal distance in frames between peristalses
+
+    Returns
+    -------
+    Mean peristalsis frequencies [Hz]
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need a Experiment, not {0}'.format(type(exp)))   
+    
+    mean_freq = []
+
+    # Iterate over all objects
+    for obj in exp.area:   
+        # Filter down to frames in which we have go_phase, area and acc_dst
+        filt = ( ~exp.area[obj].isnull() ) & ( ~exp.go_phase[obj].isnull() ) 
+        area = exp.area[obj][ filt ].reset_index(drop=True)
+        go_phase = exp.go_phase[obj][ filt ].reset_index(drop=True)          
+
+        # Get go phases
+        go_phases = _binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
+
+        # Turn go phases into list of frames
+        go_frames = np.array( [ f for l in [ np.arange( s,e ) for s,e in go_phases ] for f in l ] )
+
+        # Get area in go-phases (also make sure there is area measured)
+        go_area = area.loc[ go_frames ]
+
+        # Make sure there is area measures available
+        go_area = go_area[ ~go_area.isnull() ]        
+
+        if len(go_area) > 0:
+            # Detect peaks
+            indexes = peakutils.indexes( go_area.values, min_dist=defaults['MIN_PEAK_DIST'] )
+
+            # Get mean frequency
+            mean_freq.append( len(indexes) / ( go_area.shape[0] / defaults['FPS'] ) )
+        else:
+            mean_freq.append( np.nan )
+    
+    return pd.Series(mean_freq, index=exp.area.columns)
+
+def _binary_phases(x, mode='ON', min_len=1):
+    """ Extracts phases from binary indicators such as "go_phase" or 
+    "is_coiled".
+
+    Parameters
+    ----------
+    x :         (list, np.ndarray, pd.Series)
+                Must be consist of True/False or 0/1. E.g. [0,0,0,1,1,1,0,1,1]
+    mode :      {'ON','OFF','ALL'}, optional
+                Phases to return. For above example:
+                  - 'ON', will return [(3,6),(7,9)] 
+                  - 'OFF', will return [(0,3),(6,7)] 
+                  - 'ALL' will return [(0,3),(3,6),(6,7),(7,9)]
+    min_len :   int, optional    
+
+    Returns
+    -------
+    Phases
+    """
+
+    PERM_MODES = ['ON','OFF','ALL']
+    if mode not in PERM_MODES:
+        raise ValueError('Unknown values for "min_len". Please use {0}'.format(PERM_MODES))
+
+    if isinstance(x, (list, set)):
+        x = np.array(x)
+    elif isinstance(x, pd.Series):
+        x = x.values
+
+    if not isinstance(x, np.ndarray):
+        raise ValueError('Expect a numpy array, got {0}'.format(type(x)))
+
+    # Set nans to non go
+    #x = x [ ~np.isnan(x) ]
+    x [ np.isnan(x) ] = 0
+ 
+    if x.ndim != 1:
+        raise ValueError('Can only process 1-dimensional data, got {0}'.format(x.ndim))
+
+    # Make sure we're working on zeroes and ones
+    x = x.astype(int)
+
+    # Find start and end of phases using the first derivative        
+    deriv = np.diff( x )
+    all_cuts = np.where( deriv != 0 )[0] + 1
+
+    # Make sure we have start and end of the array covered
+    if 0 not in all_cuts:
+        all_cuts = np.insert( all_cuts, 0, 0)
+
+    if len(x) not in all_cuts:
+        all_cuts = np.append( all_cuts, len(x) )
+
+    # List of all phases
+    all_phases = list( zip( all_cuts, all_cuts[1:]  ) )
+
+    # Separate on and of phases based on what the array started with
+    if x[0] == 1:
+        on_phases = all_phases[::2]
+        off_phases = all_phases[1::2]
+    else:
+        off_phases = all_phases[::2]
+        on_phases = all_phases[1::2]
+    all_phases = list( zip(all_cuts[:-1], all_cuts[1:]) )
+
+    if mode == 'ON':
+        return np.array( [ (a,b) for a,b in on_phases if b-a >= min_len ] )
+    elif mode == 'OFF':
+        return np.array( [ (a,b) for a,b in off_phases if b-a >= min_len ] )
+    elif mode == 'ALL':
+        return np.array( [ (a,b) for a,b in all_phases if b-a >= min_len ] )
+
+
+
+
+
+
+    
