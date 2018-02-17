@@ -13,17 +13,11 @@ defaults in the current session (temporary, only for this session).
 Making lasting changes
 ----------------------
 
-First, you have to locate the pyFIM directory:
-
-1. Open a Python session
-
-2. Import pyFIM: 
+Open a Python session, import pyFIM and get it's location:
 
 >>> import pyfim
-
-3. Get location: 
-
 >>> pyfim.__file__
+... '/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/pyfim/__init__.py'
 
 Next, navigate to the pyFIM directory, open `config.py` and make your changes.
 
@@ -42,7 +36,6 @@ You can change defaults for the current session.
 >>> # Change some parameter
 >>> pyfim.defaults['MIN_STOP_TIME'] = 10
 
-
 What is what
 ------------
 
@@ -51,5 +44,5 @@ list of relevant parameters:
 
 .. csv-table:: Config parameters
    :file: conf_param.csv
-   :widths: 20, 30, 50
+   :widths: 20, 20, 60
    :header-rows: 1
