@@ -159,7 +159,7 @@ def bending_strength(exp, during=None):
 
     Returns
     -------
-    Median bending strengths [°]
+    Median bending strengths [angle]
                 Returns NaN if no bends.
 
     """
