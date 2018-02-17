@@ -52,39 +52,10 @@ list of relevant parameters:
 Data import and extraction
 ##########################
 
--------------  -----------------------  --------------------------------------------------------------------------------------
-Function       Variable                 Desciption 
--------------  -----------------------  --------------------------------------------------------------------------------------
-Import         FILE_FORMAT              File format to search for
-Import         DELIMITER                Delimiter in CSV file
-Import         PIXEL2MM                 If True, pixel coords are converted to mm or mm^2
-Import         PIXEL_PER_MM             Adjust this according to your setup
-Import         SPATIAL_PARAMS           List parameters that can be converted to mm
-Import         AREA_PARAMS              List parameters that can be converted to mm^2
-Import         FPS                      Frames per second 
-Import         CUT_TABLE_HEAD           Remove first N Frames
-Import         CUT_TABLE_TAIL           Remove last N Frames
-Import         REMOVE_NANS              Remove objects without any values
-Import         MIN_TRACK_LENGTH         Minimum track length in frames
-Import         FILL_GAPS                Fill sub-threshold gaps within thresholded columns: [0,1,1,0,0,1,1] -> [0,1,1,1,1,1,1]     
-Import         MAX_GAP_SIZE             Max gap size
-Import         THRESHOLDED_PARAMS       Parameters to fill gaps for
--------------  -----------------------  --------------------------------------------------------------------------------------
-Head bends     BENDING_ANGLE_THRESHOLD  Minimum angle to be counted as bend
-Head bends     MIN_BENDED_PHASE         Minimum consecutive frames spend bent
--------------  -----------------------  --------------------------------------------------------------------------------------
-Stops          MIN_STOP_PHASE           Minimum number of frames for a stop
--------------  -----------------------  --------------------------------------------------------------------------------------
-Peristalses    MIN_PEAK_DIST            Minimum frames between peristalses
--------------  -----------------------  --------------------------------------------------------------------------------------
-Pause-turns    MIN_STOP_TIME            Minimum length of pause in frames
-Pause-turns    MIN_GO_TIME              Minimum frames of go phase before and after pause
-Pause-turns    TURN_ANGLE_THRESHOLD     Minimum anglular difference in movement direction before vs after pause
-Pause-turns    DIRECTION_SMOOTHING      Direction will be smoother over X frames
--------------  -----------------------  --------------------------------------------------------------------------------------
-Bend strength  BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH  Minimum angle for bending strength
-
-
+.. csv-table:: Config parameters
+   :file: conf_param.csv
+   :widths: 20, 30, 50
+   :header-rows: 1
 
 FILE_FORMAT : File format to search for
 DELIMITER : Delimiter in CSV file
