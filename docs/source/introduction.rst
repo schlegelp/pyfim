@@ -45,7 +45,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/tracks.png
-   :width: 400px
+   :width: 100 %
    :alt: Tracks
    :align: left
 
@@ -82,7 +82,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/velocity.png
-   :width: 400px
+   :width: 100 %
    :alt: Velocity over time
    :align: left
 
@@ -93,7 +93,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/param_box.png
-   :width: 400px
+   :width: 100 %
    :alt: Box plot of parameters
    :align: left
 
@@ -140,7 +140,7 @@ Next, lets have a look at `Collections`:
 >>> plt.show()
 
 .. image:: img/multi_box.png
-   :width: 600px
+   :width: 100 %
    :alt: Box plot of parameters
    :align: left
 
