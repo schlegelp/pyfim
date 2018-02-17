@@ -49,60 +49,7 @@ What is what
 The `config.py` is well documented and superseeds this document but here is a
 list of relevant parameters:
 
-Data import and extraction
-##########################
-
 .. csv-table:: Config parameters
    :file: conf_param.csv
    :widths: 20, 30, 50
    :header-rows: 1
-
-FILE_FORMAT : File format to search for
-DELIMITER : Delimiter in CSV file
-
-PIXEL2MM : If True, pixel coords are converted to mm or mm^2
-PIXEL_PER_MM : Adjust this according to your setup
-SPATIAL_PARAMS : List parameters that can be converted to mm
-AREA_PARAMS : List parameters that can be converted to mm^2
-
-FPS : Frames per second -> used to calculate Hz
-
-CUT_TABLE_HEAD : Set to e.g. 10 to cut off the first 10 frames
-CUT_TABLE_TAIL : Set to e.g. 10 to cut off the last 10 frames
-
-REMOVE_NANS : Remove objects without any values
-
-MIN_TRACK_LENGTH : Minimum track length in frames
-
-FILL_GAPS : Fill sub-threshold gaps within thresholded columns, e.g. [0,1,1,0,0,1,1] -> [0,1,1,1,1,1,1] 
-MAX_GAP_SIZE : Max gap size...
-THRESHOLDED_PARAMS : Parameters to fill gaps in
-
-Head bending frequency
-######################
-
-BENDING_ANGLE_THRESHOLD : Minimum angle to be counted as bend
-MIN_BENDED_PHASE : Minimum consecutive frames spend bent
-
-Stops frequency
-###############
-
-MIN_STOP_PHASE : Minimum number of frames for a stop
-
-Peristales frequency/efficiency
-###############################
-
-MIN_PEAK_DIST : Minimum frames between peristalses
-
-Pause-turn frequency
-####################
-
-MIN_STOP_TIME : Minimum length of pause in frames
-MIN_GO_TIME : Minimum frames of go phase before and after pause
-TURN_ANGLE_THRESHOLD : Minimum anglular difference in movement direction before vs after pause
-DIRECTION_SMOOTHING : Direction will be smoother over X frames
-
-Bending strength
-################
-
-BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH : Minimum angle for bending strength

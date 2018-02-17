@@ -1,7 +1,7 @@
 Function,Variable,Desciption
 Import,`FILE_FORMAT`,File format to search for
 Import,`DELIMITER`,Delimiter in CSV file
-Import,`PIXEL2MM`,If True, pixel coords are converted to mm or mm^2
+Import,`PIXEL2MM`,If True pixel coords are converted to mm or mm^2
 Import,`PIXEL_PER_MM`,Adjust this according to your setup
 Import,`SPATIAL_PARAMS`,List parameters that can be converted to mm
 Import,`AREA_PARAMS`,List parameters that can be converted to mm^2
