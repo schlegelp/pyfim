@@ -91,7 +91,8 @@ class Collection:
                         - list of the above
                         - single folder
                         - single pyfim.Experiment object
-                    Lists of files will be merged and larva will be renumbered.
+                    Lists of files will be merged and objects (columns) will 
+                    be renumbered.
         label :     str, optional
                     Label of this data set.
         keep_raw :  bool, optional
@@ -202,7 +203,8 @@ class Experiment:
                         - a CSV file object
                         - single folder
                         - list of the above
-                Lists of files will be merged and larva will be renumbered.
+                Lists of files will be merged and objects (columns) will be 
+                renumbered.
     keep_raw :  bool, optional
                 If False, will discard raw data after extraction to save
                 memory.

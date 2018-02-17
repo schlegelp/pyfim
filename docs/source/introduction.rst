@@ -92,8 +92,9 @@ Get all means over all parameters
 
 >>> all_means = exp.mean()
 
-We can also access data by objects: get a list of tracked objects
+We can also access data by objects: 
 
+>>> # Get a list of all tracked objects
 >>> exp.objects
 ... ['object_1',
 ... 'object_100',
@@ -139,10 +140,9 @@ Next, lets have a look at `Collections`:
 >>> import pyfim
 >>> import matplotlib.pyplot as plt
 
->>> # Load CSV files from two folders
+>>> # Initialize Experiments from CSV files in two folders
 >>> exp1_folder = '/experiments/genotype1'
 >>> exp2_folder = '/experiments/genotype2'
-
 >>> exp1 = pyfim.Experiment(exp1_folder)
 >>> exp2 = pyfim.Experiment(exp2_folder)
 
