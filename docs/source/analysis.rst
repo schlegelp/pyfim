@@ -5,6 +5,9 @@ This section gives you an overview of the additional analyses that are
 performed when you initialize an experiment. They are based on MatLab code
 kindly shared by Dimitri Berh (Klaembt lab, University of Muenster, Germany):
 
+Documentation
+-------------
+
 .. autosummary::
     :toctree: generated/
 

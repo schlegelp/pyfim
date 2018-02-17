@@ -16,8 +16,10 @@ Making lasting changes
 First, you have to locate the pyFIM directory:
 
 1. Open a Python session
-2. Import pyFIM: `import pyfim`
-3. Get location: `pyfim.__file__`
+2. Import pyFIM: 
+>>> import pyfim
+3. Get location: 
+>>> pyfim.__file__
 
 Next, navigate to the pyFIM directory, open `config.py` and make your changes.
 

@@ -14,7 +14,7 @@ available via PIP.
 - `tqdm <https://pypi.python.org/pypi/tqdm>`_ >= 4.15.0
 
 .. note::
-   If you are on Windows, it is probably easiest to install a scientifi
+   If you are on Windows, it is probably easiest to install a scientific
    Python distribution such as
    `Anaconda <https://www.continuum.io/downloads>`_,
    `Enthought Canopy <https://www.enthought.com/products/canopy/>`_,
@@ -44,8 +44,10 @@ pyFIM to be installed for Python 3:
    pip3 install git+git://github.com/schlegelp/pyfim@master
 
 
-Alternatively: Installing from source
--------------------------------------
+Installing from source
+----------------------
+
+Alternatively, you can install pyFIM from source:
 
 1. Download the source (tar.gz file) from
  https://github.com/schlegelp/pyfim/tree/master/dist

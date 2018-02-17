@@ -61,8 +61,7 @@ Table of Contents
    
    source/install
    source/introduction   
-   source/analysis
-   source/plotting
+   source/analysis   
    source/configure
 
 
