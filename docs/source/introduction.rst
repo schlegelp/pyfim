@@ -18,14 +18,17 @@ additional analyses are run. Data clean up involves:
 
 - removal of objects with too few data points
 - filling of gaps in thresholded parameters
-- conversion from pixel to mm/mm^2(optional)
+- conversion from pixel to mm/mm^2 (optional)
 - remove frames at the beginning or end of the tracks
 
 You can fine tune how this and the analyses are done by changing the defaults
 in `config.py`. Please note that changes to the `config.py` will only take
 effect if you restart your Python session. On the fly, you can change the
-defaults by e.g. `pyfim.defaults['PIXEL_PER_MM'] = 300`. See the
-Configuration section for details.
+defaults by e.g. 
+
+>>> pyfim.defaults['PIXEL_PER_MM'] = 300 
+
+See the Configuration section for details.
 
 :class:`pyfim.Collection` keep track of your Experiments. Their job is to
 generate data tables from attached Experiments collapsing data into 
@@ -34,10 +37,10 @@ means per larva.
 Both these classes generate pandas DataFrames for the data and facilitate
 juggling it. I highly recommend getting familiar with pandas:
 
-- [tutorials](https://pandas.pydata.org/pandas-docs/stable/tutorials.html) 
-- [pandas visualization](https://pandas.pydata.org/pandas-docs/stable/visualization.html)
+- `pandas tutorials <https://pandas.pydata.org/pandas-docs/stable/tutorials.html>`_
+- `pandas visualization <https://pandas.pydata.org/pandas-docs/stable/visualization.html>`_
 
-Learning by doing
+Learning by doing 
 -----------------
 Let's start off with a simple case: exploring a single `Experiment`.
 
