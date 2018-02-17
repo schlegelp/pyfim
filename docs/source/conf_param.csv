@@ -10,7 +10,7 @@ Import,`CUT_TABLE_HEAD`,Remove first N Frames
 Import,`CUT_TABLE_TAIL`,Remove last N Frames
 Import,`REMOVE_NANS`,Remove objects without any values
 Import,`MIN_TRACK_LENGTH`,Minimum track length in frames
-Import,`FILL_GAPS`,Fill sub-threshold gaps within thresholded columns: [0,1,1,0,0,1,1] -> [0,1,1,1,1,1,1]     
+Import,`FILL_GAPS`,Fill sub-threshold gaps within thresholded columns: [0 1 1 0 0 1 1] -> [0 1 1 1 1 1 1]
 Import,`MAX_GAP_SIZE`,Max gap size
 Import,`THRESHOLDED_PARAMS`,Parameters to fill gaps for
 Head bends,`BENDING_ANGLE_THRESHOLD`,Minimum angle to be counted as bend
