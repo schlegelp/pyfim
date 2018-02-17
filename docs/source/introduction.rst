@@ -36,11 +36,32 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> # Initialise an experiment using a single CSV file
 >>> exp = pyfim.Experiment('/experiments/genotype1/exp1.csv')
 
->>> # Get a summary and available parameters
->>> print( exp )
-... <class 'pyfim.core.Experiment'> with: 48 objects; 1800 frames. Available parameters: acc_dst, acceleration, area, bending, bending_strength, dst_to_origin, go_phase, head_bends, head_x, head_y, is_coiled, is_well_oriented, left_bended, mom_dst, mom_x, mom_y, mov_direction, pause_turns, perimeter, peristalsis_efficiency, peristalsis_frequency, radius_1, radius_2, radius_3, right_bended, spine_length, spinepoint_1_x, spinepoint_1_y, spinepoint_2_x, spinepoint_2_y, spinepoint_3_x, spinepoint_3_y, stops, tail_x, tail_y, velocity
+Get a summary and available parameters
 
->>> # Plot traces over time
+>>> print( exp )
+... <class 'pyfim.core.Experiment'> with: 48 objects; 1800 frames. 
+... Available parameters: acc_dst, acceleration, area, bending, 
+... bending_strength, dst_to_origin, go_phase, head_bends, head_x, head_y, 
+... is_coiled, is_well_oriented, left_bended, mom_dst, mom_x, mom_y, 
+... mov_direction, pause_turns, perimeter, peristalsis_efficiency, 
+... peristalsis_frequency, radius_1, radius_2, radius_3, right_bended, 
+... spine_length, spinepoint_1_x, spinepoint_1_y, spinepoint_2_x, 
+... spinepoint_2_y, spinepoint_3_x, spinepoint_3_y, stops, tail_x, tail_y, 
+... velocity
+
+Access to all these data tables is always the same:
+
+>>> exp.acc_dst
+...    object_1  object_100  object_101  object_102  object_103 \
+... 0   0.00000     0.00000     0.00000     0.00000     0.00000    
+... 1   2.23607     0.00000     2.00000     1.00000     1.00000    
+... 2   3.65028     1.00000     3.41421     1.00000     3.23607    
+... 3   3.65028     2.00000     3.41421     2.41421     4.23607    
+... 4   4.65028     3.41421     4.41421     3.82843     4.23607    
+... ...
+
+Let's do some plotting: traces over time
+
 >>> ax = exp.plot_tracks()
 >>> plt.show()
 
@@ -49,29 +70,44 @@ Let's start off with a simple case: exploring a single `Experiment`.
    :alt: Tracks
    :align: left
 
->>> # Access a data table. Please note that some data tables are 2 dimensional
->>> # (e.g. velocity) while others are 1 dimensional (e.g. pause_turns)
+Access data tables. Please note that some data tables are 2 dimensional
+(e.g. velocity) while others are 1 dimensional (e.g. pause_turns)
+
 >>> velocity = exp.velocity
 >>> pause_turns = exp.pause_turns
 
->>> # Get the mean over all objects tracked
+Get the mean over all objects tracked
+
 >>> mean_velocity = exp.mean('velocity')
 
->>> # Alternatively (for 2 dimensional data tables)
+Alternatively (for 2 dimensional data tables)
+
 >>> mean_velocity = exp.velocity.mean(axis=0)
 
->>> # The second way also lets you get other metrics
+The second way also lets you get other metrics
+
 >>> max_velocity = exp.velocity.max(axis=0)
 
->>> # Get all means over all parameters
+Get all means over all parameters
+
 >>> all_means = exp.mean()
 
->>> # We can also access data by objects
->>> # Get a list of tracked objects
->>> objects = exp.objects
+We can also access data by objects: get a list of tracked objects
+
+>>> exp.objects
+... ['object_1',
+... 'object_100',
+... 'object_101',
+... 'object_102',
+... 'object_103',
+... ...
+
+Access all parameters for a single object:
+
 >>> obj1_data = exp['object_1']
 
->>> # Get velocity for the 5 objects
+Plot velocity for the first 5 objects
+
 >>> vel = exp.velocity.iloc[:,:5]
 >>> # Smooth over 20 frames
 >>> vel = vel.rolling(window=20).mean()
@@ -86,7 +122,8 @@ Let's start off with a simple case: exploring a single `Experiment`.
    :alt: Velocity over time
    :align: left
 
->>> # Plot some frequency parameters over all objects
+Plot some frequency parameters over all objects
+
 >>> param_to_plot = ['head_bends','pause_turns','stops']
 >>> ax = exp.mean().loc[param_to_plot].T.plot(kind='box')
 >>> ax.set_ylabel('freq [Hz]')
@@ -109,12 +146,14 @@ Next, lets have a look at `Collections`:
 >>> exp1 = pyfim.Experiment(exp1_folder)
 >>> exp2 = pyfim.Experiment(exp2_folder)
 
->>> # Initialise a Collection and add the Experiments
+Initialise a Collection and add the Experiments
+
 >>> coll = pyfim.Collection()
 >>> coll.add_data(exp1, label='genotypeI')
 >>> coll.add_data(exp2, label='genotypeII')
 
->>> # Get a summary of the Collection
+Get a summary of the Collection
+
 >>> coll
 ... <class 'pyfim.core.Collection'> with 3 experiments: 
 ...          name  n_objects  n_frames
@@ -123,7 +162,8 @@ Next, lets have a look at `Collections`:
 ... 2  genotypeII         47      1800 
 ... Available parameters: tail_x, mom_dst, acc_dst, is_well_oriented, spinepoint_3_y, spine_length, right_bended, spinepoint_1_x, radius_2, peristalsis_frequency, radius_1, acceleration, spinepoint_1_y, area, head_bends, spinepoint_2_y, mom_y, go_phase, peristalsis_efficiency, bending_strength, spinepoint_2_x, tail_y, spinepoint_3_x, velocity, perimeter, pause_turns, head_x, mov_direction, left_bended, dst_to_origin, bending, head_y, is_coiled, radius_3, mom_x, stops
 
->>> # Get and plot a single parameter
+Get and plot a single parameter
+
 >>> mean_acc_dst = coll.acc_dst
 >>> ax = mean_acc_dst.plot(kind='box')
 >>> ax.set_ylabel('accumulated distance')
@@ -134,8 +174,9 @@ Next, lets have a look at `Collections`:
    :alt: Box plot of parameters
    :align: left
 
->>> # Collections have a built-in plotting function that lets you plot  
->>> # multiple parameters as boxplots
+Collections have a built-in plotting function that lets you plot multiple
+parameters as boxplots
+
 >>> ax = coll.plot(['head_bends','pause_turns','stops'])
 >>> plt.show()
 

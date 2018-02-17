@@ -48,7 +48,7 @@ def stops(exp):
 
     Returns
     -------
-    Stop frequency [Hz]
+    Stop frequency [Hz] : pandas.DataFrame
 
     """
 
@@ -85,16 +85,13 @@ def pause_turns(exp):
     (2) determining if the movement direction before and after the pause
     differs sufficiently. You can finetune this behaviour by changing the
     following parameters in the config file:
-        - `MIN_STOP_TIME`: minimum number of frames for a pause to be counted
-                           as one.
-        - `MIN_GO_TIME`: minimum frames before and after the pause to be
-                         counted as pause-turn.
-        - `TURN_ANGLE_THRESHOLD`: minimum angular difference in movement
-                                  direction before and after the pause.
+        - `MIN_STOP_TIME`: minimum number of frames for a pause to be counted as one.
+        - `MIN_GO_TIME`: minimum frames before and after the pause to be counted as pause-turn.
+        - `TURN_ANGLE_THRESHOLD`: minimum angular difference in movement direction before and after the pause.
 
     Returns
     -------
-    Pause-Turn frequency [Hz]
+    Pause-Turn frequency [Hz] : pandas.DataFrame
 
     """
 
@@ -159,7 +156,7 @@ def bending_strength(exp, during=None):
 
     Returns
     -------
-    Median bending strengths [angle]
+    Median bending strengths [angle] : pandas.DataFrame
                 Returns NaN if no bends.
 
     """
@@ -211,12 +208,11 @@ def head_bends(exp):
     bending phases of a given minimum length. You can finetune this behaviour
     using the following parameters in the config file:
         - `BENDING_ANGLE_THRESHOLD`: minimum bending angle
-        - `MIN_BENDED_PHASE`: minimum consecutive number of frames above
-                              angle threshold
+        - `MIN_BENDED_PHASE`: minimum consecutive number of frames above angle threshold
 
     Returns
     -------
-    Mean head bending frequencies [Hz]
+    Mean head bending frequencies [Hz] : pandas.DataFrame
 
     """
 
@@ -264,7 +260,7 @@ def peristalsis_efficiency(exp):
 
     Returns
     -------
-    Mean peristalsis efficiency [Hz]
+    Mean peristalsis efficiency [Hz] : pandas.DataFrame
 
     """
 
@@ -329,7 +325,7 @@ def peristalsis_frequency(exp):
 
     Returns
     -------
-    Mean peristalsis frequencies [Hz]
+    Mean peristalsis frequencies [Hz] : pandas.DataFrame
 
     """
 
