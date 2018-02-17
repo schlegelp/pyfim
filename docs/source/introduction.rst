@@ -6,26 +6,36 @@ This section will teach you the basics of how to use pyFIM.
 
 Experiments and Collections
 ---------------------------
-Everython in pyFIM is done by two basic classes: :class:`~pyfim.Experiment` and :class:`~pyfim.Collection`. 
+Everython in pyFIM is done by two basic classes: :class:`~pyfim.Experiment`
+and :class:`~pyfim.Collection`. 
 
-:class:`~pyfim.Experiment` extracts data from .csv files, does analyses and
+:class:`pyfim.Experiment` extracts data from .csv files, does analyses and
 helps you access each parameter. The idea is that you divide data from e.g.
 different genotypes into an Experiment each. 
 
-:class:`~pyfim.Collection` keep track of your Experiments. Their job is to
+As soon as you initialize an Experiment, data is extracted, processed and 
+additional analyses are run. Data clean up involves:
+
+- removal of objects with too few data points
+- filling of gaps in thresholded parameters
+- conversion from pixel to mm/mm^2(optional)
+- remove frames at the beginning or end of the tracks
+
+You can fine tune how this and the analyses are done by changing the defaults
+in `config.py`. Please note that changes to the `config.py` will only take
+effect if you restart your Python session. On the fly, you can change the
+defaults by e.g. `pyfim.defaults['PIXEL_PER_MM'] = 300`. See the
+Configuration section for details.
+
+:class:`pyfim.Collection` keep track of your Experiments. Their job is to
 generate data tables from attached Experiments collapsing data into 
 means per larva.
 
-Both these classes simply juggle data stored as pandas DataFrames or Series. 
-So you can use pandas fancy indexing, statistics and [visualisation](https://pandas.pydata.org/pandas-docs/stable/visualization.html).
+Both these classes generate pandas DataFrames for the data and facilitate
+juggling it. I highly recommend getting familiar with pandas:
 
-All data clean up (e.g. removing objects with too little data) and additional
-analyses (e.g. pause-turns or peristalsis frequency) are done the moment you
-initialise an `Experiment`. You can fine tune how this is done by changing the
-defaults in `config.py`. Please note that changes to the `config.py` will only
-take effect if you restart your Python session. On the fly, you can change the
-defaults by e.g. `pyfim.defaults['PIXEL_PER_MM'] = 300`. See Configuration 
-section.
+- [tutorials](https://pandas.pydata.org/pandas-docs/stable/tutorials.html) 
+- [pandas visualization](https://pandas.pydata.org/pandas-docs/stable/visualization.html)
 
 Learning by doing
 -----------------
@@ -35,8 +45,12 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> import matplotlib.pyplot as plt
 >>> # Initialise an experiment using a single CSV file
 >>> exp = pyfim.Experiment('/experiments/genotype1/exp1.csv')
+... INFO  : Data clean-up dropped 51 objects and 0 frames (pyfim)
 
-Get a summary and available parameters
+As you see, 51 objects were dropped during import. That's because, by default,
+object tracks have to have at least 500 frames - if not they are dropped.
+
+Next, get a summary and available parameters:
 
 >>> print( exp )
 ... <class 'pyfim.core.Experiment'> with: 48 objects; 1800 frames. 
