@@ -1,7 +1,7 @@
 pyFIM
 =====
 
-Python 3 toolbox for analysing [FIM](https://www.uni-muenster.de/PRIA/en/FIM/) data:
+Python 3 toolbox for analysing [FIM](http://fim.uni-muenster.de) data:
 
 1. Read .csv files produced by [FIMTrack](https://www.uni-muenster.de/PRIA/en/FIM/download.shtml)
 2. Merge individual files into experiments
@@ -10,7 +10,7 @@ Python 3 toolbox for analysing [FIM](https://www.uni-muenster.de/PRIA/en/FIM/) d
 
 FIMTrack CSV files contain a large selection of primary, secondary and
 tertiary features (position, area, movement direction, length, etc). PyFIM
-adds a few high-level analyses:
+adds a few high-level analyses based on MatLab scripts by Dimitri Berh.
 
 - pause-turn frequency
 - stop frequency
@@ -25,7 +25,7 @@ First, get [PIP](https://pip.pypa.io/en/stable/installing/) and then run in a te
 
 `pip install git+git://github.com/schlegelp/pyfim@master`
 
-This command should also work to update the package.
+This command also works to update the package.
 
 If your default distribution is Python 2, you have to explicitly tell [PIP](https://pip.pypa.io/en/stable/installing/) to install for Python 3:
 
@@ -42,7 +42,7 @@ available via PIP.
 
 - [Pandas](http://pandas.pydata.org/) >= 0.21.0
 - [Numpy](http://www.scipy.org) >= 1.13.3
-- [peakutils](https://pypi.python.org/pypi/PeakUtils) >= 1.1.0
+- [PeakUtils](https://pypi.python.org/pypi/PeakUtils) >= 1.1.0
 - [tqdm](https://pypi.python.org/pypi/tqdm) >= 4.15.0
 
 ## Quickstart
@@ -55,10 +55,10 @@ pyFIM consists only of two classes that do the all the data handling for you:
 
 First things first: all data clean up (e.g. removing objects with too little 
 data) and additional analyses (e.g. pause-turns or peristalsis frequency) are 
-done the moment you initialise an `Experiment`. You can tune this by changing 
-the defaults in `config.py`. Please note that changes to the `config.py` will 
-only take effect if you restart your Python session. On the fly, you can 
-change the defaults by e.g. `pyfim.defaults['PIXEL_PER_MM'] = 300`.
+done the moment you initialise an `Experiment`. You can fine tune how this is 
+done by changing the defaults in `config.py`. Please note that changes to the 
+`config.py` will only take effect if you restart your Python session. On the 
+fly, you can change the defaults by e.g. `pyfim.defaults['PIXEL_PER_MM'] = 300`.
 
 Data is generally stored as pandas DataFrames or Series. So you can use 
 their fancy indexing, statistics and [visualisation](https://pandas.pydata.org/pandas-docs/stable/visualization.html).
@@ -91,7 +91,7 @@ max_velocity = exp.velocity.max(axis=0)
 # Get all means over all parameters
 all_means = exp.mean()
 
-# We can also access data by the object:
+# We can also access data by objects
 # Get a list of tracked objects
 objects = exp.objects
 
@@ -105,6 +105,11 @@ plt.show()
 param_to_plot = ['head_bends','pause_turns','peristalsis_frequency','stops']
 ax = exp.means().loc[param_to_plot].T.plot(kind='box')
 plt.show()
+
+# Plot movement of objects
+ax = exp.plot_tracks()
+plt.show()
+
 ```
 
 In the second example, we compare two `Experiments`:
@@ -133,22 +138,20 @@ mean_acc_dst = coll.acc_dst
 ax = mean_acc_dst.plot(kind='box')
 plt.show()
 
-# Collections have a built-in plotting function that 
-# lets you plot multiple parameters as boxplots
+# Collections have a built-in plotting function that lets you plot multiple 
+# parameters as boxplots
 ax = coll.plot(['head_bends','pause_turns','stops'])
 plt.show()
 
 ```
 
 ## Acknowledgments
-Big thanks to Dimitri Berh, Benjamin Risse and Nils Otto for sharing their 
-original MatLab code for the additional analyses!
+Big thanks to Dimitri Berh, Benjamin Risse, Nils Otto and Christian Klämbt for 
+sharing their MatLab code.
 
-
-## FIM Publications
-
-Risse B, Berh D, Otto N, Klämbt C, Jiang X. FIMTrack: An open source tracking and locomotion analysis software for small animals. Poisot T, ed. PLoS Computational Biology. 2017;13(5):e1005530. doi:10.1371/journal.pcbi.1005530.
+## FIMTrack References
+Risse B, Berh D, Otto N, Klämbt C, Jiang X. FIMTrack: An open source tracking and locomotion analysis software for small animals. PLoS Computational Biology. 2017;13(5):e1005530. doi:10.1371/journal.pcbi.1005530.
 
 Risse B, Otto N, Berh D, Jiang X, Klämbt C. FIM Imaging and FIMtrack: Two New Tools Allowing High-throughput and Cost Effective Locomotion Analysis. Journal of Visualized Experiments : JoVE. 2014;(94):52207. doi:10.3791/52207.
 
-Risse B, Thomas S, Otto N, et al. FIM, a Novel FTIR-Based Imaging Method for High Throughput Locomotion Analysis. Gilestro GF, ed. PLoS ONE. 2013;8(1):e53963. doi:10.1371/journal.pone.0053963.
+Risse B, Thomas S, Otto N, et al. FIM, a Novel FTIR-Based Imaging Method for High Throughput Locomotion Analysis. PLoS ONE. 2013;8(1):e53963. doi:10.1371/journal.pone.0053963.

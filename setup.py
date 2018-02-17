@@ -13,9 +13,9 @@ else:
 
 
 setup(
-    name='pyfim',
+    name='pyFIM',
     version=verstr,
-    packages=['pyfim'],
+    packages=['pyFIM'],
     license='GNU GPL V3',
     description='Read and analyse FIMTrack data.',
     long_description=open('README.md').read(),

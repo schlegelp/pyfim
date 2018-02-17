@@ -3,12 +3,12 @@
 
 default_parameters = dict(
 
-# Few settings for the input files
-FILE_FORMAT               = '.csv', # Set file format to search for
+# Input files
+FILE_FORMAT               = '.csv', # File format to search for
 DELIMITER                 = ',',    # Delimiter in CSV file
 
-# Spatial resolution fo video
-PIXEL2MM                  = False,  # If True, Pixel coords are converted to mm or mm^2
+# Spatial resolution
+PIXEL2MM                  = False,  # If True, pixel coords are converted to mm or mm^2
 PIXEL_PER_MM              = 150,    # Adjust this according to your setup
 SPATIAL_PARAMS            = ['acc_dst',
                              'acceleration',
@@ -38,31 +38,34 @@ AREA_PARAMS               = ['area'],
 FRAMES2MIN                = True, # Not implemented yet
 FPS                       = 10,   # Frames per second -> used to calculate Hz
 
-# Remove X first/last entries of results table
-CUT_TABLE_HEAD           = False, # Set e.g. to 10 to cut off the first 10 rows
+# Remove N first/last entries of results table
+CUT_TABLE_HEAD            = False, # Set to e.g. 10 to cut off the first 10 rows
 CUT_TABLE_TAIL            = False,
 
 # Remove objects (columns) without any values
 REMOVE_NANS               = True, # Not doing this is actually a bad idea!
 
-# Remove objects (columns) with less than this values
+# Remove objects (columns) with less N tracked frames
 MIN_TRACK_LENGTH          = 600,  # Minimum track length in frames
 
-# Fill NaN gaps within thresholded columns
-# e.g. [0,1,1,NaN,1,0,0,1] -> [0,1,1,1,1,0,0,1]
+# Fill sub-threshold gaps within thresholded columns
+# e.g. [0,1,1,0,0,1,1] -> [0,1,1,1,1,1,1]
 FILL_GAPS                 = True,
 MAX_GAP_SIZE              = 3,
-THRESHOLDED_PARAMS        = ['left_bended','right_bended','go_phase',
-                             'is_coiled', 'is_well_oriented'],
+THRESHOLDED_PARAMS        = ['left_bended',
+                             'right_bended',
+                             'go_phase',
+                             'is_coiled', 
+                             'is_well_oriented'],
 
 # Parameters for head bending
 BENDING_ANGLE_THRESHOLD   = 45, # Minimum angle to be counted as bend
 MIN_BENDED_PHASE          = 4,  # Minimum consecutive frames spend bent
 
 # Parameter for stop counting
-MIN_STOP_PHASE            = 5,  # Minimum number of frames for a stop to be counted
+MIN_STOP_PHASE            = 5,  # Minimum number of frames for a stop
 
-# Parameter for area peak (peristalsis) analysis
+# Parameters for area peak (peristalsis) analysis
 MIN_PEAK_DIST             = 5,  # Minimum frames between peristalses
 MIN_GO_PHASE              = 30, # Not yet implemented
 

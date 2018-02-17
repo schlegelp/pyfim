@@ -1,5 +1,8 @@
-#    This code is part of pymaid (http://www.github.com/schlegelp/pyfim).
-#    Copyright (C) 2017 Philipp Schlegel
+#    This code is part of pyFIM (http://www.github.com/schlegelp/pyfim), a
+#    package to analyze FIMTrack data (fim.uni-muenster.de). For full
+#    acknowledgments and references, please see the GitHub repository.
+#
+#    Copyright (C) 2018 Philipp Schlegel
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -12,8 +15,8 @@
 #    GNU General Public License for more details.
 
 
-from io import IOBase
 import os
+from io import IOBase
 
 import pandas as pd
 import numpy as np
@@ -41,6 +44,7 @@ if len( module_logger.handlers ) == 0:
     sh.setFormatter(formatter)
     module_logger.addHandler(sh)
 
+
 class Collection:
     """ Collection of experiments. This allows you to easily collect and plot
     data from multi experiments.
@@ -56,29 +60,31 @@ class Collection:
     >>> c.add_data( exp2, 'Genotype II')
     >>> # Get a summary
     >>> c
-    ... <class 'pyfim.core.Collection'> with 2 experiments: 
-    ... name  n_objects  n_frames
-    ... 0  exp_1         47      1800
-    ... 1  exp_2         46      1800 
-    ... Available parameters: mom_y, perimeter, peristalsis_frequency, 
+    ... <class 'pyfim.core.Collection'> with 2 experiments:
+    ...    name         n_objects  n_frames
+    ... 0  Genotype I          47      1800
+    ... 1  Genotype II         46      1800
+    ... Available parameters: mom_y, perimeter, peristalsis_frequency,
     ... radius_3, pause_turns, spinepoint_2_x, acc_dst, ...
-    >>> # Access analyses
+    >>> # Access data
     >>> c.peristalsis_frequency
     >>> # Plot as boxplot
     >>> ax = c.peristalsis_frequency.plot(kind='box')
     >>> plt.show()
+
     """
 
     def __init__(self):
         self.experiments = []
         pass
 
+
     def add_data(self, x, label=None, keep_raw=False):
-        """ Add an data (e.g. a genotype) to this analysis.
+        """ Add data (e.g. a genotype) to this analysis.
 
         Parameters
         ----------
-        x :         {filename, folder, file object, list thereof, pyfim.Experiment}
+        x :         {filename, folder, file object, pyfim.Experiment}
                     Provide either:
                         - a CSV file name
                         - a CSV file object
@@ -89,11 +95,13 @@ class Collection:
         label :     str, optional
                     Label of this data set.
         keep_raw :  bool, optional
-                    If False, will not keep .csv raw data. Saves memory.
+                    If False, will discard raw data after extraction to save
+                    memory. Only relevant if x is not an pyfim.Experiment.
 
         Returns
         -------
-        Nothing.
+        Nothing
+
         """
         if not label:
            label = 'exp_{0}'.format( len( self.experiments ) + 1 )
@@ -109,6 +117,7 @@ class Collection:
 
         self.extract_data()
 
+
     def summary(self):
         """ Gives a summary of the data in this analysis.
         """
@@ -118,24 +127,27 @@ class Collection:
         return pd.DataFrame( [ [exp] + [ getattr( getattr(self, exp), p ) for p in to_summarize ] for exp in self.experiments ],
                              columns=['name']+to_summarize )
 
+
     def __str__(self):
         return self.__repr__()
 
+
     def __repr__(self):
-        return '{0} with {1} experiments: \n {2} \n Available parameters: {3}'.format(type(self), 
-                                                                                     len(self.experiments), 
+        return '{0} with {1} experiments: \n {2} \n Available parameters: {3}'.format(type(self),
+                                                                                     len(self.experiments),
                                                                                      str(self.summary()),
                                                                                      ', '.join(self.parameters) )
 
     @property
     def parameters(self):
         """Returns parameters that all experiments have in common."""
-        all_params = [ set( getattr(self, exp).parameters ) 
+        all_params = [ set( getattr(self, exp).parameters )
                                 for exp in self.experiments ]
         if all_params:
             return np.array( list(all_params[0].union(*all_params) ) )
         else:
             return []
+
 
     def extract_data(self):
         """ Get the mean over all parameters.
@@ -154,7 +166,8 @@ class Collection:
                     means = values.mean().values
                 data.append( means )
             df = pd.DataFrame( data, index= self.experiments ).T
-            setattr(self, param, df)   
+            setattr(self, param, df)
+
 
     def plot(self, param=None, **kwargs):
         """ Plots a set of parameters from this pyFIM Collection.
@@ -162,11 +175,11 @@ class Collection:
         Parameters
         ----------
         param : {str, list of str, None}, optional
-                Parameters to plot. If None, will plot a default selection of 
+                Parameters to plot. If None, will plot a default selection of
                 parameters: acc_dst, dst_to_origin, head_bends, bending_strength,
                 peristalsis_frequency, peristalsis_efficiency, stops, pause_turns,
                 velocity
-                
+
         **kwargs
                 Will be passed to pandas.DataFrame.plot
 
@@ -175,7 +188,7 @@ class Collection:
         matplotlib.Axes
 
         """
-        return fim_plot.plot_parameters(self, param, **kwargs)    
+        return fim_plot.plot_parameters(self, param, **kwargs)
 
 
 class Experiment:
@@ -183,16 +196,16 @@ class Experiment:
 
     Parameters
     ----------
-    f :         {filename, folder, file object, list thereof, pyfim.Experiment}
+    f :         {filename, folder, file object}
                     Provide either:
                         - a CSV file name
                         - a CSV file object
-                        - list of the above
                         - single folder
-                        - single pyfim.Experiment object
-                Lists of files will be merged and larva will be renumbered.   
+                        - list of the above
+                Lists of files will be merged and larva will be renumbered.
     keep_raw :  bool, optional
-                If False, will not keep .csv raw data. Saves memory.
+                If False, will discard raw data after extraction to save
+                memory.
 
 
     Examples
@@ -206,19 +219,20 @@ class Experiment:
     >>> # Access data
     >>> exp.dst_to_origin.head()
     ...    object_1  object_13  object_15  object_18  object_19  \
-    ... 0   0.00000    0.00000        NaN        NaN        NaN   
-    ... 1   2.23607    0.00000        NaN        NaN        NaN   
-    ... 2   3.60555    1.41421        NaN        NaN        NaN   
-    ... 3   3.60555    2.82843        NaN        NaN        NaN   
-    ... 4   4.47214    4.24264        0.0        NaN        NaN   
+    ... 0   0.00000    0.00000        NaN        NaN        NaN
+    ... 1   2.23607    0.00000        NaN        NaN        NaN
+    ... 2   3.60555    1.41421        NaN        NaN        NaN
+    ... 3   3.60555    2.82843        NaN        NaN        NaN
+    ... 4   4.47214    4.24264        0.0        NaN        NaN
     >>> # Plot data individual objects over time
     >>> ax = exp.dst_to_origin.plot()
     >>> plt.show()
     >>> # Get mean of all values
     >>> exp.mean()
+
     """
 
-    def __init__(self, f, keep_raw=False):  
+    def __init__(self, f, keep_raw=False):
         # Make sure we have files or filenames
         f = _parse_files(f)
 
@@ -229,10 +243,11 @@ class Experiment:
         self.raw_data = pd.concat( data, axis=1, ignore_index=False )
         self.raw_data.columns = [ 'object_{0}'.format(i) for i in range( self.raw_data.shape[1] ) ]
 
-        self.extract_data() 
+        self.extract_data()
 
         if not keep_raw:
             del self.raw_data
+
 
     def extract_data(self):
         """ Extracts parameters from .csv file.
@@ -254,18 +269,18 @@ class Experiment:
 
             # Add data as attribute
             setattr(self, p, values )
-        
+
         # Perform data clean up
-        self.clean_data()        
-        
+        self.clean_data()
+
         # Perform additional, "higher-level" analyses
         for param in tqdm(fim_analysis.__all__, desc='Performing additional analyses', leave=False):
             func = getattr( fim_analysis, param )
             setattr(self, param, func( self ) )
             self.parameters.append( param )
 
-        self.parameters = sorted( self.parameters ) 
-        
+        self.parameters = sorted( self.parameters )
+
 
     @property
     def objects(self):
@@ -276,9 +291,10 @@ class Experiment:
         for p in self.parameters:
             values = getattr(self, p )
             if isinstance(values, pd.DataFrame):
-                all_cols.extend( values.columns.values )        
+                all_cols.extend( values.columns.values )
 
-        return sorted( list( set(all_cols ) ) ) 
+        return sorted( list( set(all_cols ) ) )
+
 
     @property
     def n_objects(self):
@@ -287,6 +303,7 @@ class Experiment:
 
         return getattr(self, self.parameters[0] ).shape[1]
 
+
     @property
     def n_frames(self):
         """ Returns the number of frames in this experiment.
@@ -294,30 +311,32 @@ class Experiment:
 
         return getattr(self, self.parameters[0] ).shape[0]
 
+
     def clean_data(self):
         """ Cleans up the data.
         """
         frames_before = self.n_frames
         obj_before = self.n_objects
 
-        # Get objects that have a at least a single all nan table
+        # Get objects that have at an all NaN column in any parameter
         has_all_nans = [ obj for obj in self.objects if 0 in self[obj].count().values ]
 
-        # Will use the "head_x" parameter to determine track length 
-        # -> some other parameters (e.g. "go_phase") vary in length   
-        long_enough = [ obj for obj in self.objects if 
-                        getattr(self, 'head_x')[obj].count() >= defaults['MIN_TRACK_LENGTH'] 
+        # Will use the "head_x" parameter to determine track length
+        # -> some other parameters (e.g. "go_phase") vary in length
+        long_enough = [ obj for obj in self.objects if
+                        getattr(self, 'head_x')[obj].count() >= defaults['MIN_TRACK_LENGTH']
                         and obj not in has_all_nans]
-        
 
+        # Iterate over parameters and clean-up if necessary
         for p in tqdm(self.parameters, desc='Cleaning data', leave=False):
+            # Get values
             values = getattr(self, p)
 
-            # Drop objects that have all nans
+            # Drop objects that have all NaNs
             values = values.drop( has_all_nans, axis=1 )
 
             # Remove object (columns) too few data points
-            if defaults['MIN_TRACK_LENGTH']:                              
+            if defaults['MIN_TRACK_LENGTH']:
                 # Remove columns with fewer than minimum values
                 values = values.loc[:, long_enough ]
 
@@ -332,7 +351,7 @@ class Experiment:
             # Convert to mm/mm^2
             if defaults['PIXEL2MM']:
                 if p in defaults['SPATIAL_PARAMS']:
-                    values *= defaults['PIXEL_PER_MM']                    
+                    values *= defaults['PIXEL_PER_MM']
                 elif p in defaults['AREA_PARAMS']:
                     values = np.sqrt(values) * defaults['PIXEL_PER_MM']
 
@@ -350,23 +369,28 @@ class Experiment:
                 # Set zeros that stayed zeros back to zero
                 values[ (zeros) & ( values.isnull() ) ] = 0.0
 
+            # Write values back
             setattr( self, p, values )
 
         module_logger.info('Data clean-up dropped {0} objects and {1} frames'.format( obj_before-self.n_objects, frames_before-self.n_frames ))
 
+
     def __str__(self):
         return self.__repr__()
 
+
     def __repr__(self):
         return '{0} with: {1} objects; {2} frames. Available parameters: {3}'.format(type(self), self.n_objects, self.n_frames, ', '.join(self.parameters) )
+
 
     def analyze(self, p):
         """ Returns analysis for given parameter.
         """
         return getattr(self, p).describe()
 
+
     def mean(self, p=None ):
-        """ Return mean of given parameter over given parameter. If no 
+        """ Return mean of given parameter over given parameter. If no
         parameter is given return means vor all parameters.
         """
         if p == None:
@@ -380,7 +404,7 @@ class Experiment:
             return pd.DataFrame(  all_means,
                                   index=self.parameters,
                                   columns=self.objects,
-                                   )                   
+                                   )
         else:
             values = getattr(self, p)
             if values.ndim == 1:
@@ -388,9 +412,9 @@ class Experiment:
             else:
                 return values.mean(axis=0)
 
+
     def sanity_check(self):
-        """ Does a sanity check of all attached data.
-        """
+        """ Does a sanity check of attached data."""
         errors_found = False
 
         # Test if we have the same number of frames/objects for each parameter
@@ -417,8 +441,9 @@ class Experiment:
         if not errors_found:
             module_logger.info('No errors found - all good!')
 
+
     def __getitem__(self, key):
-        """ Retrieves data for a SINGLE object. Please note that for 
+        """ Retrieves data for a SINGLE object. Please note that for
         parameters with only a single data point per object (e.g. head_bends),
         this single parameter will be at frame 0 and the rest of the column
         will be NaN.
@@ -434,10 +459,40 @@ class Experiment:
                 values = pd.DataFrame([values])
             data.append(values)
 
-        df = pd.concat( data, axis=1 ) 
-        df.columns = self.parameters   
+        df = pd.concat( data, axis=1 )
+        df.columns = self.parameters
 
         return df
+
+    def plot_tracks(self, obj=None, ax=None, plot='head', **kwargs):
+        """ Plots traces of tracked objects.
+
+        Notes
+        -----
+        Uses "spinepoint_2" to plot objects center.
+
+        Parameters
+        ----------
+        exp :   pyFIM.Experiment
+        obj :   {str, list of str, None}
+                Name of object(s) to plot. If None, will plot all objects in
+                Experiment.
+        ax :    matplotlib.Axes, optional
+                Ax to plot on. If not provided, will create a new one.
+        plot :  {'center','head'}
+                Which part of the object to plot.
+        **kwargs
+                Will be passed to ax.plot()
+
+        Returns
+        -------
+        matplotlib.Axes
+
+        """
+        return fim_plot.plot_tracks(self, obj=obj,
+                                          ax=ax,
+                                          plot=plot,
+                                          **kwargs)
 
 
 def _parse_files(x):
@@ -449,7 +504,8 @@ def _parse_files(x):
             if os.path.isfile(x):
                 return [ x ]
             elif os.path.isdir(x):
-                return [ f for f in os.listdir(x) if f.endswith(defaults['FILE_FORMAT']) ]
+                return [ f for f in os.listdir(x) if
+                                    f.endswith(defaults['FILE_FORMAT']) ]
             else:
                 raise ValueError('Unable to intepret "{0}" - appears to be neither a file nor a folder'.format(x))
     elif isinstance( x, IOBase ):
