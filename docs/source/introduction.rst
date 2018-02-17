@@ -130,7 +130,7 @@ Next, lets have a look at `Collections`:
 >>> plt.show()
 
 .. image:: img/acc_dst.png
-   :width: 400px
+   :width: 100 %
    :alt: Box plot of parameters
    :align: left
 
@@ -150,5 +150,5 @@ Reference
 .. autosummary::
     :toctree: generated/
 
-    ~pymaid.Experiment
-    ~pymaid.Collection
+    ~pyfim.Experiment
+    ~pyfim.Collection
