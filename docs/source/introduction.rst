@@ -44,7 +44,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> ax = exp.plot_tracks()
 >>> plt.show()
 
-.. image:: ../../img/tracks.png
+.. image:: img/tracks.png
    :width: 200px
    :alt: Tracks
    :align: right
@@ -81,7 +81,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> ax.set_ylabel('velocity')
 >>> plt.show()
 
-.. image:: ../../img/velocity.png
+.. image:: img/velocity.png
    :width: 200px
    :alt: Velocity over time
    :align: right
@@ -92,7 +92,7 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> ax.set_ylabel('freq [Hz]')
 >>> plt.show()
 
-.. image:: ../../img/param_box.png
+.. image:: img/param_box.png
    :width: 200px
    :alt: Box plot of parameters
    :align: right
@@ -129,7 +129,7 @@ Next, lets have a look at `Collections`:
 >>> ax.set_ylabel('accumulated distance')
 >>> plt.show()
 
-.. image:: ../../img/acc_dst.png
+.. image:: img/acc_dst.png
    :width: 200px
    :alt: Box plot of parameters
    :align: right
@@ -139,7 +139,7 @@ Next, lets have a look at `Collections`:
 >>> ax = coll.plot(['head_bends','pause_turns','stops'])
 >>> plt.show()
 
-.. image:: ../../img/multi_box.png
+.. image:: img/multi_box.png
    :width: 300px
    :alt: Box plot of parameters
    :align: right
