@@ -45,9 +45,9 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/tracks.png
-   :width: 200px
+   :width: 400px
    :alt: Tracks
-   :align: right
+   :align: left
 
 >>> # Access a data table. Please note that some data tables are 2 dimensional
 >>> # (e.g. velocity) while others are 1 dimensional (e.g. pause_turns)
@@ -82,9 +82,9 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/velocity.png
-   :width: 200px
+   :width: 400px
    :alt: Velocity over time
-   :align: right
+   :align: left
 
 >>> # Plot some frequency parameters over all objects
 >>> param_to_plot = ['head_bends','pause_turns','stops']
@@ -93,9 +93,9 @@ Let's start off with a simple case: exploring a single `Experiment`.
 >>> plt.show()
 
 .. image:: img/param_box.png
-   :width: 200px
+   :width: 400px
    :alt: Box plot of parameters
-   :align: right
+   :align: left
 
 Next, lets have a look at `Collections`:
 
@@ -130,9 +130,9 @@ Next, lets have a look at `Collections`:
 >>> plt.show()
 
 .. image:: img/acc_dst.png
-   :width: 200px
+   :width: 400px
    :alt: Box plot of parameters
-   :align: right
+   :align: left
 
 >>> # Collections have a built-in plotting function that lets you plot  
 >>> # multiple parameters as boxplots
@@ -140,9 +140,9 @@ Next, lets have a look at `Collections`:
 >>> plt.show()
 
 .. image:: img/multi_box.png
-   :width: 300px
+   :width: 600px
    :alt: Box plot of parameters
-   :align: right
+   :align: left
 
 Reference
 =========
