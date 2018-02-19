@@ -91,7 +91,7 @@ class Collection:
                         - list of the above
                         - single folder
                         - single pyfim.Experiment object
-                    Lists of files will be merged and objects (columns) will 
+                    Lists of files will be merged and objects (columns) will
                     be renumbered.
         label :     str, optional
                     Label of this data set.
@@ -203,7 +203,7 @@ class Experiment:
                         - a CSV file object
                         - single folder
                         - list of the above
-                Lists of files will be merged and objects (columns) will be 
+                Lists of files will be merged and objects (columns) will be
                 renumbered.
     keep_raw :  bool, optional
                 If False, will discard raw data after extraction to save
@@ -506,7 +506,7 @@ def _parse_files(x):
             if os.path.isfile(x):
                 return [ x ]
             elif os.path.isdir(x):
-                return [ f for f in os.listdir(x) if
+                return [ os.path.join(x,f) for f in os.listdir(x) if
                                     f.endswith(defaults['FILE_FORMAT']) ]
             else:
                 raise ValueError('Unable to intepret "{0}" - appears to be neither a file nor a folder'.format(x))
