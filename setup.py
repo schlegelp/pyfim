@@ -13,9 +13,9 @@ else:
 
 
 setup(
-    name='pyFIM',
+    name='pyfim',
     version=verstr,
-    packages=['pyFIM'],
+    packages=['pyfim'],
     license='GNU GPL V3',
     description='Read and analyse FIMTrack data.',
     long_description=open('README.md').read(),
@@ -26,16 +26,16 @@ setup(
 
     classifiers=[
         'Development Status :: 3 - Alpha',
-        
+
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
 
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-        
+
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-    ],   
+    ],
 )
