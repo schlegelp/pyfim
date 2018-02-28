@@ -466,7 +466,7 @@ class Experiment:
 
         return df
 
-    def plot_tracks(self, obj=None, ax=None, plot='head', **kwargs):
+    def plot_tracks(self, obj=None, ax=None, **kwargs):
         """ Plots traces of tracked objects.
 
         Notes
@@ -493,7 +493,6 @@ class Experiment:
         """
         return fim_plot.plot_tracks(self, obj=obj,
                                           ax=ax,
-                                          plot=plot,
                                           **kwargs)
 
 

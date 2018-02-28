@@ -1,5 +1,5 @@
 #    This code is part of pyFIM (http://www.github.com/schlegelp/pyfim), a
-#    package to analyze FIMTrack data (fim.uni-muenster.de). For full  
+#    package to analyze FIMTrack data (fim.uni-muenster.de). For full
 #    acknowledgments and references, please see the GitHub repository.
 #
 #    Copyright (C) 2018 Philipp Schlegel
@@ -16,11 +16,13 @@
 
 import pyfim.core
 
+import math
+
 import numpy as np
 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
-import math
+from matplotlib.collections import LineCollection
 
 
 def plot_parameters(coll, param=None, **kwargs):
@@ -30,10 +32,10 @@ def plot_parameters(coll, param=None, **kwargs):
     ----------
     coll :  pyFIM.Collection
     param : {str, list of str, None}, optional
-            Parameters to plot. If None, will plot a default selection of 
+            Parameters to plot. If None, will plot a default selection of
             parameters: acc_dst, dst_to_origin, head_bends, bending_strength,
             peristalsis_frequency, peristalsis_efficiency, stops, pause_turns,
-            velocity            
+            velocity
     **kwargs
             Will be passed to pandas.DataFrame.plot
 
@@ -48,7 +50,7 @@ def plot_parameters(coll, param=None, **kwargs):
 
     if isinstance(param, type(None)):
         param = ['acc_dst', 'dst_to_origin', 'head_bends', 'bending_strength',
-            'peristalsis_frequency', 'peristalsis_efficiency', 'stops', 
+            'peristalsis_frequency', 'peristalsis_efficiency', 'stops',
             'pause_turns', 'velocity']
     elif not isinstance(param, (list, np.ndarray, set)):
         param = [ param ]
@@ -65,8 +67,8 @@ def plot_parameters(coll, param=None, **kwargs):
         data = getattr(coll, p)
 
         # Calculate position in grid
-        this_row = math.floor( i / n_cols ) 
-        this_col = i - this_row * n_cols 
+        this_row = math.floor( i / n_cols )
+        this_col = i - this_row * n_cols
 
         # Get correct axis
         if n_rows > 1:
@@ -77,31 +79,28 @@ def plot_parameters(coll, param=None, **kwargs):
             ax = axes[this_col]
 
         # Set defaults and incorporate kwargs
-        defaults = dict( 
+        defaults = dict(
                          kind = 'box',
                          ax = ax
                             )
         defaults.update(kwargs)
 
-        # Plot data 
+        # Plot data
         data.plot( **defaults )
 
         # Some make over
         ax.set_ylabel(p.replace('_',' '))
         ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)                
+        ax.spines['right'].set_visible(False)
 
-    plt.tight_layout()    
+    plt.tight_layout()
 
     return axes
 
 
-def plot_tracks(exp, obj=None, ax=None, plot='head', **kwargs):
+def plot_tracks(exp, obj=None, ax=None, **kwargs):
     """ Plots traces of tracked objects.
 
-    Notes
-    -----
-    Uses "spinepoint_2" to plot objects center.
 
     Parameters
     ----------
@@ -110,9 +109,7 @@ def plot_tracks(exp, obj=None, ax=None, plot='head', **kwargs):
             Name of object(s) to plot. If None, will plot all objects in
             Experiment.
     ax :    matplotlib.Axes, optional
-            Ax to plot on. If not provided, will create a new one.            
-    plot :  {'center','head'}
-            Which part of the object to plot.
+            Ax to plot on. If not provided, will create a new one.
     **kwargs
             Will be passed to ax.plot()
 
@@ -121,9 +118,6 @@ def plot_tracks(exp, obj=None, ax=None, plot='head', **kwargs):
     matplotlib.Axes
 
     """
-    PERM_ARGS = ['center','head']
-    if plot not in PERM_ARGS:
-        raise ValueError('Unexpected "plot" argument. Please use either {0}'.format(','.join(PERM_ARGS)))
 
     if not isinstance(exp, pyfim.core.Experiment):
         raise TypeError('Need pyfim.Experiment, got {0}'.format(type(exp)))
@@ -145,28 +139,49 @@ def plot_tracks(exp, obj=None, ax=None, plot='head', **kwargs):
         ax.set_aspect('equal')
 
     # Prepare default colors
-    colors = plt.get_cmap('tab10').colors 
+    colors = plt.get_cmap('tab10').colors
     # Multiply palette if necessary
     colors *= math.ceil( len(obj) / len(colors) )
 
     # Plot objects
     for i, ob in enumerate( [ exp[ob] for ob in obj ] ):
         defaults_lin = dict(
-                            c=colors[i]
+                            color=colors[i],
+                            linewidth=.5,
                             )
         defaults_lin.update(kwargs)
 
-        if plot == 'head':
-            x = ob.head_x
-            y = ob.head_y
-        elif plot == 'center':
-            x = ob.spinepoint_2_x
-            y = ob.spinepoint_2_y
+        # Subset to relevant parameters and drop empty frames
+        ob = ob[[
+                 'head_x','head_y',
+                 'spinepoint_1_x','spinepoint_1_y',
+                 'spinepoint_2_x','spinepoint_2_y',
+                 'spinepoint_3_x','spinepoint_3_y',
+                 'tail_x','tail_y',
+                 ]].dropna(how='any', axis=0)
 
-        # Plot trace
-        ax.plot(x, 
-                y, 
-                **defaults_lin)
+        # Extract x coordinates for each frame
+        lines_x = ob[['tail_x',
+                      'spinepoint_3_x',
+                      'spinepoint_2_x',
+                      'spinepoint_1_x',
+                      'head_x']].values
+
+        # Extract y coordinates for each frame
+        lines_y = ob[['tail_y',
+                      'spinepoint_3_y',
+                      'spinepoint_2_y',
+                      'spinepoint_1_y',
+                      'head_y']].values
+
+        # Merge x and y coordinates
+        lines_xy = [ list(  zip(l_x,l_y) ) for l_x,l_y in zip(lines_x,lines_y) ]
+
+        # Turn all lines into a collection
+        lc = LineCollection( lines_xy, **defaults_lin )
+
+        # Addd line collection to axis
+        ax.add_collection(lc)
 
         """
         # Indicate start with an "s"
@@ -176,6 +191,8 @@ def plot_tracks(exp, obj=None, ax=None, plot='head', **kwargs):
                  color=defaults_lin['c']
                 )
         """
+
+    ax.autoscale()
 
     return ax
 
