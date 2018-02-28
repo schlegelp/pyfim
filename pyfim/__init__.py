@@ -1,4 +1,4 @@
-__version__ = "0.12"
+__version__ = "0.13"
 
 from pyfim import config
 defaults = config.default_parameters
