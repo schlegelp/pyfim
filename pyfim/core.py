@@ -208,7 +208,9 @@ class Experiment:
     keep_raw :  bool, optional
                 If False, will discard raw data after extraction to save
                 memory.
-
+    include_subfolders : bool, optional
+                         If True and folder is provided, will also search
+                         subfolders for .csv files.
 
     Examples
     --------
@@ -234,9 +236,12 @@ class Experiment:
 
     """
 
-    def __init__(self, f, keep_raw=False):
+    def __init__(self, f, keep_raw=False, include_subfolders=False):
         # Make sure we have files or filenames
-        f = _parse_files(f)
+        f = _parse_files(f, include_subfolders)
+
+        if len(f) == 0:
+            raise ValueError('No files found')
 
         # Get the data from each individual file
         data = [ pd.read_csv(fn, sep=defaults['DELIMITER'], index_col=0) for fn in tqdm(f, desc='Reading files', leave=False) ]
@@ -496,7 +501,7 @@ class Experiment:
                                           **kwargs)
 
 
-def _parse_files(x):
+def _parse_files(x, include_subfolders=False):
     """Parses input to filenames or file objects. Will always return a list!
     """
     if isinstance(x, (np.ndarray, list, set)):
@@ -505,8 +510,13 @@ def _parse_files(x):
             if os.path.isfile(x):
                 return [ x ]
             elif os.path.isdir(x):
-                return [ os.path.join(x,f) for f in os.listdir(x) if
+                files = [ os.path.join(x,f) for f in os.listdir(x) if
                                     f.endswith(defaults['FILE_FORMAT']) ]
+                if include_subfolders:
+                    directories = [ os.path.join(x,f) for f in os.listdir(x) if os.path.isdir( os.path.join(x,f) ) ]
+                    files += [ f for d in directories for f in _parse_files(d, True) ]
+
+                return files
             else:
                 raise ValueError('Unable to intepret "{0}" - appears to be neither a file nor a folder'.format(x))
     elif isinstance( x, IOBase ):
