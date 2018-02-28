@@ -23,6 +23,8 @@ import numpy as np
 
 from tqdm import tqdm
 
+import re
+
 # Load analysis scripts
 from pyfim import analysis as fim_analysis
 from pyfim import plot as fim_plot
@@ -247,13 +249,39 @@ class Experiment:
         data = [ pd.read_csv(fn, sep=defaults['DELIMITER'], index_col=0) for fn in tqdm(f, desc='Reading files', leave=False) ]
 
         # Merge - make sure the indices match up
-        self.raw_data = pd.concat( data, axis=1, ignore_index=False )
+        self.raw_data = pd.concat( data, axis=1, ignore_index=False, join='outer' )
+
+        # join='outer' makes sure that if we have an uneven number of frames,
+        # they will be aligned and empty frames will be filled with NaN
+        # However, this also messes up the order -> will have to fix that
+        fixed_ix = sorted( self.raw_data.index, key = lambda x : self._index_sorter ( x ) )
+        self.raw_data = self.raw_data.loc[fixed_ix]
+
         self.raw_data.columns = [ 'object_{0}'.format(i) for i in range( self.raw_data.shape[1] ) ]
 
         self.extract_data()
 
         if not keep_raw:
             del self.raw_data
+
+    def _index_sorter( self, x):
+        """ Helper function to fix pandas indices. After merging frames are
+        messed up:
+
+        mom_x(0)
+        mom_x(10)
+        mom_x(11)
+        ...
+
+        Returns
+        -------
+        parameter (str) :     e.g. "mom_x"
+        frame (int) :         e.g. 10
+        """
+
+        groups = re.search('(.*?)\((.*?)\)', x).groups()
+
+        return ( groups[0], int(groups[1]) )
 
 
     def extract_data(self):
