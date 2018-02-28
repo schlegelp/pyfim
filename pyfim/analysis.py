@@ -27,11 +27,11 @@ defaults = config.default_parameters
 
 __all__ = ['stops','pause_turns','bending_strength',
            'head_bends', 'peristalsis_efficiency',
-           'peristalsis_frequency' ]
+           'peristalsis_frequency', 'binary_phases' ]
 
 
 def stops(exp):
-    """ Calculates frequency of stops [Hz] for each object. This analysis is 
+    """ Calculates frequency of stops [Hz] for each object. This analysis is
     based on MatLab code by Dimitri Berh (University of Muenster, Germany).
 
     Notes
@@ -60,7 +60,7 @@ def stops(exp):
     # Iterate over all objects
     for obj in exp.go_phase:
         # Find stop and go phases
-        stop_phases = _binary_phases( exp.go_phase[obj].values,
+        stop_phases = binary_phases( exp.go_phase[obj].values,
                                       mode='OFF',
                                       min_len=defaults['MIN_STOP_PHASE'] )
         # Add mean frequency
@@ -70,8 +70,8 @@ def stops(exp):
 
 
 def pause_turns(exp):
-    """ Calculates the frequency of pause-turns [Hz] for each object. This 
-    analysis is based on MatLab code by Dimitri Berh (University of Muenster, 
+    """ Calculates the frequency of pause-turns [Hz] for each object. This
+    analysis is based on MatLab code by Dimitri Berh (University of Muenster,
     Germany).
 
     Parameters
@@ -106,7 +106,7 @@ def pause_turns(exp):
     # Iterate over all objects
     for obj in exp.mov_direction:
         # Find stop and go phases
-        go_phases = _binary_phases( exp.go_phase[obj].values, mode='ON' )
+        go_phases = binary_phases( exp.go_phase[obj].values, mode='ON' )
 
         turns = 0
         # Go over pairs of consecutive go phases
@@ -135,8 +135,8 @@ def pause_turns(exp):
 
 
 def bending_strength(exp, during=None):
-    """ Calculates the median (!) bending strength for each object. This 
-    analysis is based on MatLab code by Dimitri Berh (University of Muenster, 
+    """ Calculates the median (!) bending strength for each object. This
+    analysis is based on MatLab code by Dimitri Berh (University of Muenster,
     Germany).
 
     Parameters
@@ -193,7 +193,7 @@ def bending_strength(exp, during=None):
 
 
 def head_bends(exp):
-    """ Calculates the head bend frequency [Hz] for each object. This analysis 
+    """ Calculates the head bend frequency [Hz] for each object. This analysis
     is based on MatLab code by Dimitri Berh (University of Muenster, Germany).
 
     Parameters
@@ -230,7 +230,7 @@ def head_bends(exp):
         is_bend = abs_bend >= defaults['BENDING_ANGLE_THRESHOLD']
 
         # Extract bending phases
-        bend_phases = _binary_phases( is_bend, mode='ON', min_len=defaults['MIN_BENDED_PHASE'] )
+        bend_phases = binary_phases( is_bend, mode='ON', min_len=defaults['MIN_BENDED_PHASE'] )
 
         # Add mean frequency
         mean_freq.append( len(bend_phases) / ( abs_bend.shape[0] / defaults['FPS'] ) )
@@ -240,8 +240,8 @@ def head_bends(exp):
 
 def peristalsis_efficiency(exp):
     """ Calculates the peristalsis efficiency for each object. The unit is
-    depending on the input data: [pixel/peristalsis] or [mm/peristalsis]. 
-    This analysis is based on MatLab code by Dimitri Berh (University of 
+    depending on the input data: [pixel/peristalsis] or [mm/peristalsis].
+    This analysis is based on MatLab code by Dimitri Berh (University of
     Muenster, Germany).
 
     Parameters
@@ -282,7 +282,7 @@ def peristalsis_efficiency(exp):
         acc_dst = exp.acc_dst[obj][ filt ].reset_index(drop=True)
 
         # Get go phases
-        go_phases = _binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
+        go_phases = binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
 
         # Turn go phases into list of frames
         go_frames = np.array( [ f for l in [ np.arange( s,e ) for s,e in go_phases ] for f in l ] )
@@ -306,8 +306,8 @@ def peristalsis_efficiency(exp):
 
 
 def peristalsis_frequency(exp):
-    """ Calculates the peristalsis frequency [Hz] for each object. This 
-    analysis is based on MatLab code by Dimitri Berh (University of Muenster, 
+    """ Calculates the peristalsis frequency [Hz] for each object. This
+    analysis is based on MatLab code by Dimitri Berh (University of Muenster,
     Germany).
 
     Parameters
@@ -342,7 +342,7 @@ def peristalsis_frequency(exp):
         go_phase = exp.go_phase[obj][ filt ].reset_index(drop=True)
 
         # Get go phases
-        go_phases = _binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
+        go_phases = binary_phases( go_phase.values, mode='ON', min_len=defaults['MIN_GO_PHASE'] )
 
         # Turn go phases into list of frames
         go_frames = np.array( [ f for l in [ np.arange( s,e ) for s,e in go_phases ] for f in l ] )
@@ -365,9 +365,9 @@ def peristalsis_frequency(exp):
     return pd.Series(mean_freq, index=exp.area.columns)
 
 
-def _binary_phases(x, mode='ON', min_len=1):
-    """ Extracts phases from binary indicators such as "go_phase" or
-    "is_coiled". 
+def binary_phases(x, mode='ON', min_len=1):
+    """ Low-level function: Extracts phases from binary indicators such as
+    "go_phase" or "is_coiled".
 
     Parameters
     ----------
@@ -401,7 +401,7 @@ def _binary_phases(x, mode='ON', min_len=1):
     # Make sure we're working on a copy
     x = x.copy()
 
-    # Set NaNs to non-go
+    # Set NaNs to OFF
     x [ np.isnan(x) ] = 0
 
     if x.ndim != 1:

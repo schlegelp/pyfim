@@ -16,4 +16,5 @@ Documentation
     ~pyfim.analysis.bending_strength
     ~pyfim.analysis.head_bends
     ~pyfim.analysis.peristalsis_efficiency
-    ~pyfim.analysis.peristalsis_frequency	
+    ~pyfim.analysis.peristalsis_frequency
+    ~pyfim.analysis.binary_phases
