@@ -12,6 +12,7 @@ Documentation
     :toctree: generated/
 
 	~pyfim.analysis.stops
+    ~pyfim.analysis.stop_duration
     ~pyfim.analysis.pause_turns
     ~pyfim.analysis.bending_strength
     ~pyfim.analysis.head_bends

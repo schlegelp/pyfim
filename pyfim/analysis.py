@@ -27,7 +27,45 @@ defaults = config.default_parameters
 
 __all__ = ['stops','pause_turns','bending_strength',
            'head_bends', 'peristalsis_efficiency',
-           'peristalsis_frequency' ]
+           'peristalsis_frequency', 'stop_duration' ]
+
+def stop_duration(exp):
+    """ Calculates mean duration of a stop. This analysis is based on MatLab
+    code by Dimitri Berh (University of Muenster, Germany).
+
+    Notes
+    -----
+    This function measures the average length of phases in which `go_phase` is
+    zero. You can finetune this behaviour by adjusting the following parameter
+    in the config file:
+        - `MIN_STOP_PHASE`: minimum number of frames for a stop
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Returns
+    -------
+    Mean stop duration [Frames] : pandas.DataFrame
+
+    """
+
+    if not isinstance(exp, core.Experiment):
+        raise TypeError('Need pyfim.Experiment, not {0}'.format(type(exp)))
+
+    mean_duration = []
+
+    # Iterate over all objects
+    for obj in exp.go_phase:
+        # Find stop and go phases
+        stop_phases = binary_phases( exp.go_phase[obj].values,
+                                      mode='OFF',
+                                      min_len=defaults['MIN_STOP_PHASE'] )
+        # Add mean duration
+        mean_duration.append( sum([ p[1]-p[0] for p in stop_phases ]) / len(stop_phases) )
+
+    return pd.Series(mean_duration, index=exp.go_phase.columns)
 
 
 def stops(exp):
@@ -404,7 +442,10 @@ def binary_phases(x, mode='ON', min_len=1):
     x = x.copy()
 
     # Set NaNs to OFF
-    x [ np.isnan(x) ] = 0
+    #x [ np.isnan(x) ] = 0
+
+    # Drop NaNs
+    x = x[ ~np.isnan(x) ]
 
     if x.ndim != 1:
         raise ValueError('Can only process 1-dimensional data, got {0}'.format(x.ndim))
