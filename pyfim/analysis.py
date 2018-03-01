@@ -62,8 +62,12 @@ def stop_duration(exp):
         stop_phases = binary_phases( exp.go_phase[obj].values,
                                       mode='OFF',
                                       min_len=defaults['MIN_STOP_PHASE'] )
-        # Add mean duration
-        mean_duration.append( sum([ p[1]-p[0] for p in stop_phases ]) / len(stop_phases) )
+
+        if len(stop_phases) < 0:
+            # Add mean duration
+            mean_duration.append( sum([ p[1]-p[0] for p in stop_phases ]) / len(stop_phases) )
+        else:
+            mean_duration.append( np.nan )
 
     return pd.Series(mean_duration, index=exp.go_phase.columns)
 
