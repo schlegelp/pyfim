@@ -27,7 +27,7 @@ defaults = config.default_parameters
 
 __all__ = ['stops','pause_turns','bending_strength',
            'head_bends', 'peristalsis_efficiency',
-           'peristalsis_frequency', 'binary_phases' ]
+           'peristalsis_frequency' ]
 
 
 def stops(exp):
@@ -385,6 +385,8 @@ def binary_phases(x, mode='ON', min_len=1):
     Indices of phases
 
     """
+
+    # Important: do NOT add this to __all__ -> otherwise this will be run as analysis
 
     PERM_MODES = ['ON','OFF','ALL']
     if mode not in PERM_MODES:
