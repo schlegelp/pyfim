@@ -63,7 +63,7 @@ def stop_duration(exp):
                                       mode='OFF',
                                       min_len=defaults['MIN_STOP_PHASE'] )
 
-        if len(stop_phases) < 0:
+        if len(stop_phases) > 0:
             # Add mean duration
             mean_duration.append( sum([ p[1]-p[0] for p in stop_phases ]) / len(stop_phases) )
         else:
