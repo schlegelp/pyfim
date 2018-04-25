@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# pymaid documentation build configuration file, created by
+# pyfim documentation build configuration file, created by
 # sphinx-quickstart on Sun Jul  9 22:17:00 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -20,9 +20,13 @@
 import os
 import sys
 import numpydoc
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, os.path.abspath('../pyfim'))
+
+import pyfim
 
 #This needs to be removed in order to built locally
 import mock
@@ -154,7 +158,7 @@ html_theme = 'default'
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = 'pymaid v0.4'
+# html_title = 'pyfim v0.2'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
