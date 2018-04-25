@@ -1,6 +1,6 @@
-__version__ = "0.17"
+__version__ = "0.2"
 
 from pyfim import config
 defaults = config.default_parameters
 
-from pyfim.core import Experiment, Collection
+from pyfim.core import Experiment, Collection, TwoChoiceExperiment

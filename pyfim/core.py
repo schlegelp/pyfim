@@ -246,10 +246,16 @@ class Experiment:
 
     def __init__(self, f, keep_raw=False, include_subfolders=False):
         # Make sure we have files or filenames
-        f = _parse_files(f, include_subfolders)
+        if f:
+            f = _parse_files(f, include_subfolders)
 
-        if len(f) == 0:
-            raise ValueError('No files found')
+            if len(f) == 0:
+                raise ValueError('No files found')
+        else:
+            # This is for when we want to initialise an empty experiment
+            self.parameters = []
+            self._original_params = []
+            return
 
         # Get the data from each individual file
         data = [ pd.read_csv(fn, sep=defaults['DELIMITER'], index_col=0) for fn in tqdm(f, desc='Reading files', leave=False) ]
@@ -299,6 +305,9 @@ class Experiment:
 
         # Find all parameters
         self.parameters = sorted (set( [ p[ : p.index('(') ] for p in self.raw_data.index ] ) )
+
+        # Keep track of original parameters (make sure to use a copy)
+        self._original_params = list( self.parameters )
 
         # Go over all parameters
         for p in tqdm( self.parameters, desc='Extracting data', leave=False ):
@@ -427,7 +436,12 @@ class Experiment:
     def analyze(self, p):
         """ Returns analysis for given parameter.
         """
-        return getattr(self, p).describe()
+        param = getattr(self, p)
+
+        if isinstance(param, (pd.DataFrame, pd.Series) ):
+            return param.describe()
+        else:
+            module_logger.warning('Unable to analyse parameter "{0}" of type "{1}"'.format(p, type(param)))
 
 
     def mean(self, p=None ):
@@ -438,20 +452,26 @@ class Experiment:
             all_means = []
             for p in self.parameters:
                 values = getattr(self, p)
-                if values.ndim == 1:
-                    all_means.append(values.values)
+                if isinstance(values, (pd.DataFrame, pd.Series)):
+                    if values.ndim == 1:
+                        all_means.append(values.values)
+                    else:
+                        all_means.append(values.mean(axis=0).values)
                 else:
-                    all_means.append(values.mean(axis=0).values)
+                    all_means.append(np.mean(values))
             return pd.DataFrame(  all_means,
                                   index=self.parameters,
                                   columns=self.objects,
                                    )
         else:
             values = getattr(self, p)
-            if values.ndim == 1:
-                return values
+            if isinstance(values, (pd.DataFrame, pd.Series)):
+                if values.ndim == 1:
+                    return values
+                else:
+                    return values.mean(axis=0)
             else:
-                return values.mean(axis=0)
+                return np.mean(values)
 
 
     def sanity_check(self):
@@ -533,6 +553,104 @@ class Experiment:
         return fim_plot.plot_tracks(self, obj=obj,
                                           ax=ax,
                                           **kwargs)
+
+
+class TwoChoiceExperiment(Experiment):
+    """ Variation of :class:`~pyfim.Experiment` base class that performs
+    additional analyses.
+    """
+
+    def __init__(self, f, keep_raw=False, include_subfolders=False):
+        # Do everything the base class does
+        super().__init__(f, keep_raw, include_subfolders)
+
+        # Add two choice analyses
+        self.two_choice_analyses()
+
+
+    def two_choice_analyses(self):
+        """ Performs additional two-choice analyses.
+        """
+
+        # Perform additional, "higher-level" analyses
+        for param in tqdm(fim_analysis.__two_choice__, desc='Performing two-choice analyses', leave=False):
+            func = getattr( fim_analysis, param )
+            setattr(self, param, func( self ) )
+            self.parameters.append( param )
+
+        self.parameters = sorted( self.parameters )
+
+    def split_data(self):
+        """ Split data into experiment and control. Returns a collection.
+
+        Notes
+        -----
+        You can finetune this behaviour by adjusting the following parameters in
+        the config file:
+            - `TC_PARAM`: parameter used to split data (e.g. "mom_x" for split along x-axis)
+            - `TC_BOUNDARY`: boundary between control and experiment
+            - `TC_CONTROL_SIDE`: defines which side is the control
+
+        Please note that after splitting the data no data-clean up is performed
+        before analyses are run again.
+
+        Returns
+        -------
+        :class:`~pyfim.Collection` consisting of base :class:`~pyfim.Experiment`
+
+        """
+
+        # Get parameter by which to split data
+        tc_param = getattr(self, defaults['TC_PARAM'])
+
+        # Split data into above and below threshold
+        lower_mask = tc_param <= defaults['TC_BOUNDARY']
+        upper_mask = tc_param > defaults['TC_BOUNDARY']
+
+        # Figure out which side is control
+        if defaults['TC_CONTROL_SIDE'] == 0:
+            ctrl_mask, exp_mask = lower_mask, upper_mask
+        elif defaults['TC_CONTROL_SIDE'] == 1:
+            ctrl_mask, exp_mask = upper_mask, lower_mask
+
+        # Generate empty experiments
+        experiment = Experiment(None)
+        control = Experiment(None)
+
+        # Feed original, MASKED data to each experiment
+        for p in self._original_params:
+            data = getattr(self, p)
+
+            for exp, mask in zip( [experiment, control], [exp_mask, ctrl_mask] ):
+                # Apply mask and drop empty columns
+                masked_data = data[ mask ].dropna( axis=1, inplace=False, thresh=defaults['MIN_TRACK_LENGTH'] )
+                # Apply parameter to experiment
+                setattr(exp, p, masked_data)
+                exp._original_params.append( p )
+                exp.parameters.append( p )
+
+        # Make sure that all objects are present in all data tables
+        # -> higher level data such as "go-phase" have less data points per object and might get dropped
+        for exp in [experiment, control]:
+            # Get objects that are present in ALL data tables
+            univ_objects = list( set.intersection(*[ set(getattr(exp, p).columns) for p in exp._original_params ]) )
+            # Remove objects that are not universal
+            for p in exp._original_params:
+                setattr(exp, p, getattr(exp,p)[univ_objects] )
+
+        # Rerun higher-level analyses
+        for param in tqdm(fim_analysis.__all__, desc='Performing additional analyses', leave=False):
+            func = getattr( fim_analysis, param )
+            for exp in [experiment, control]:
+                setattr(exp, param, func( exp ) )
+                exp.parameters.append( param )
+                exp.parameters = sorted( exp.parameters )
+
+        col = Collection()
+        col.add_data( experiment, label='experiment' )
+        col.add_data( control, label='control' )
+
+        return col
 
 
 def _parse_files(x, include_subfolders=False):

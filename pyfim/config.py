@@ -55,7 +55,7 @@ MAX_GAP_SIZE              = 3,
 THRESHOLDED_PARAMS        = ['left_bended',
                              'right_bended',
                              'go_phase',
-                             'is_coiled', 
+                             'is_coiled',
                              'is_well_oriented'],
 
 # Parameters for head bending
@@ -76,6 +76,15 @@ TURN_ANGLE_THRESHOLD      = 30, # Minimum anglular difference in movement direct
 DIRECTION_SMOOTHING       = 10, # Direction will be smoother over X frames
 
 # Parameter for bending strength
-BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH   = 20 # Minimum angle for bending strength
+BENDING_ANGLE_THRESHOLD_FOR_BENDING_STRENGTH   = 20, # Minimum angle for bending strength
+
+# Parameters for two-choice preference index (PI)
+TC_PARAM                  = 'mom_x', # Parameter used to split data (e.g. "mom_x" for split along x-axis)
+TC_BOUNDARY               = 1000,    # Boundary between control and experiment. Has to be in mm if `PIXEL2MM` is True, else in pixel.
+TC_CONTROL_SIDE           = 0,       # Defines which side is the control: 0 = lower than ("left of") `TC_BOUNDARY`, 1 = higher than ("right of") `TC_BOUNDARY`
+TC_COUNT_WINDOW           = 30,      # Rolling window (in frames) over which to count objects on either side.
+TC_SMOOTHING_WINDOW       = 30,      # Rolling window (in frames) over which to smooth PI.
+TC_CUT_HEAD               = 0.75,    # Set to ignore the first X frames for PI calculation. Can be fraction (e.g. 0.75) of total frames.
+TC_CUT_TAIL               = False,   # Set to ignore the last X frames for PI calculation. Can be fraction (e.g. 0.75) of total frames.
 
 )

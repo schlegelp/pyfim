@@ -25,9 +25,139 @@ import peakutils
 from pyfim import core, config
 defaults = config.default_parameters
 
+# Default analyses
 __all__ = ['stops','pause_turns','bending_strength',
            'head_bends', 'peristalsis_efficiency',
            'peristalsis_frequency', 'stop_duration' ]
+
+# Define two-choice analyses here
+__two_choice__ = ['PI_over_time','preference_index']
+
+def preference_index(exp):
+    """ Calculates the preference index (PI) for a two choice experiment:
+
+                    `PI = (exp-control)/(exp+control)`
+
+    with `exp` and `control` being the number of objects on the experimental
+    and the control side, respectively.
+
+    Based on code by Sebastian Hueckesfeld (University of Bonn, Germany).
+
+    Notes
+    -----
+    This function counts the number of objects in rolling windows of 10s on either side of a boundary.
+    You can finetune this behaviour by adjusting the following parameters in
+    the config file:
+        - `TC_PARAM`: parameter used to split data (e.g. "mom_x" for split along x-axis)
+        - `TC_BOUNDARY`: boundary between control and experiment
+        - `TC_CONTROL_SIDE`: defines which side is the control
+        - `TC_COUNT_WINDOW`: rolling window (in frames) over which to count max objects
+        - `TC_SMOOTHING_WINDOW` : rolling window (in frames) over which to smooth PI
+        - `TC_CUT_HEAD`: set to ignore the first X frames for PI calculation. Can be fraction (e.g. 0.75) of total frames.
+        - `TC_CUT_TAIL`: set to ignore the last X frames for PI calculation. Can be fraction (e.g. 0.1) of total frames.
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Returns
+    -------
+    PI : float
+
+    """
+
+    # Check if PI over time has already been computed
+    PI = getattr(exp, 'PI_over_time', None)
+
+    # If necessary, calculate PI over time from scratch
+    if isinstance(PI, type(None)):
+        PI = PI_over_time(exp)
+
+    # Remove head and tail frames if applicable
+    if defaults['TC_CUT_HEAD']:
+        # If fraction
+        if defaults['TC_CUT_HEAD'] < 1:
+            lower_bound = PI.shape[0] * defaults['TC_CUT_HEAD']
+        else:
+            lower_bound = defaults['TC_CUT_HEAD']
+    else:
+        lower_bound = 0
+
+    if defaults['TC_CUT_TAIL']:
+        # If fraction
+        if defaults['TC_CUT_TAIL'] < 1:
+            upper_bound = PI.shape[0] - PI.shape[0] * defaults['TC_CUT_TAIL']
+        else:
+            upper_bound = PI.shape[0] - defaults['TC_CUT_TAIL']
+    else:
+        upper_bound = PI.shape[0]
+
+    PI = PI.iloc[ int(lower_bound) : int(upper_bound) ]
+
+    return PI.PI.mean()
+
+def PI_over_time(exp):
+    """ Calculates the preference index (PI) for a two choice experiment over time:
+
+                    `PI = (exp-control)/(exp+control)`
+
+    with `exp` and `control` being the number of objects on the experimental
+    and the control side, respectively.
+
+    Based on code by Sebastian Hueckesfeld (University of Bonn, Germany).
+
+    Notes
+    -----
+    This function counts the number of objects in rolling windows of 10s on either side of a boundary.
+    You can finetune this behaviour by adjusting the following parameters in
+    the config file:
+        - `TC_PARAM`: parameter used to split data (e.g. "mom_x" for split along x-axis)
+        - `TC_BOUNDARY`: boundary between control and experiment
+        - `TC_CONTROL_SIDE`: defines which side is the control
+        - `TC_COUNT_WINDOW`: rolling window (in frames) over which to count max objects
+        - `TC_SMOOTHING_WINDOW` : rolling window (in frames) over which to smooth PI
+
+    Parameters
+    ----------
+    exp     :   pyfim.Experiment
+                Experiment holding the raw data.
+
+    Returns
+    -------
+    PI over time : pandas.DataFrame
+
+    """
+
+    # Get parameter by which to split data
+    tc_param = getattr(exp, defaults['TC_PARAM'])
+
+    # Get count for below and above the boundary
+    lower = (tc_param <= defaults['TC_BOUNDARY']).sum(axis=1).to_frame()
+    upper = (tc_param > defaults['TC_BOUNDARY']).sum(axis=1).to_frame()
+
+    # Sort into control and exp
+    if defaults['TC_CONTROL_SIDE'] == 0:
+        control, experiment = lower, upper
+    elif defaults['TC_CONTROL_SIDE'] == 1:
+        control, experiment = upper, lower
+    else:
+        raise ValueError('TC_CONTROL_SIDE must be either 0 or 1, not {0}'.format(defaults['TC_CONTROL_SIDE']))
+
+    # Apply rolling window if applicable
+    if defaults['TC_COUNT_WINDOW'] not in [None, 0, 1]:
+        control = control.rolling(window=defaults['TC_COUNT_WINDOW']).max()
+        experiment = experiment.rolling(window=defaults['TC_COUNT_WINDOW']).max()
+
+    # Calculate PI
+    PI = (experiment-control)/(experiment+control)
+    PI.columns=['PI']
+
+    # Apply smoothing if applicable
+    if defaults['TC_SMOOTHING_WINDOW'] not in [None, 0, 1]:
+        PI = PI.rolling(window=defaults['TC_SMOOTHING_WINDOW']).mean()
+
+    return PI
 
 def stop_duration(exp):
     """ Calculates mean duration of a stop. This analysis is based on MatLab
