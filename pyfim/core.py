@@ -21,17 +21,23 @@ from io import IOBase
 import pandas as pd
 import numpy as np
 
-from tqdm import tqdm
-
 import re
 
 # Load analysis scripts
 from pyfim import analysis as fim_analysis
 from pyfim import plot as fim_plot
+from pyfim import utils
 
 # Load default values
 from pyfim import config
 defaults = config.default_parameters
+
+# Load progress bar
+from tqdm import tqdm
+if utils.is_jupyter():
+    from tqdm import tqdm_notebook, tnrange
+    tqdm = tqdm_notebook
+    trange = tnrange
 
 import logging
 module_logger = logging.getLogger('pyfim')
