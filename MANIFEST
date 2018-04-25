@@ -5,3 +5,4 @@ pyfim/analysis.py
 pyfim/config.py
 pyfim/core.py
 pyfim/plot.py
+pyfim/utils.py

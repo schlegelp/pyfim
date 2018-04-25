@@ -8,6 +8,8 @@ kindly shared by Dimitri Berh (Klaembt lab, University of Muenster, Germany):
 Documentation
 -------------
 
+Base analyses
+=============
 .. autosummary::
     :toctree: generated/
 
@@ -19,3 +21,12 @@ Documentation
     ~pyfim.analysis.peristalsis_efficiency
     ~pyfim.analysis.peristalsis_frequency
     ~pyfim.analysis.binary_phases
+
+
+Two-choice analyses
+===================
+.. autosummary::
+    :toctree: generated/
+
+    ~pyfim.analysis.preference_index
+    ~pyfim.analysis.PI_over_time
