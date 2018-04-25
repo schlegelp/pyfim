@@ -38,4 +38,14 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
+
+    install_requires=[
+        "numpy>=1.13.0",
+        "matplotlib>=2.0.0",
+        "pandas>=0.22.0",
+        "tqdm>=4.14.0",
+        "peakutils",
+    ],
+
+    python_requires='>=3.3',
 )
