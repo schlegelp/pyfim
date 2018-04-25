@@ -26,14 +26,14 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../..'))
 #sys.path.insert(0, os.path.abspath('../pyfim'))
 
-import pyfim
-
 #This needs to be removed in order to built locally
 import mock
 MOCK_MODULES = ['tqdm', 'pandas', 'numpy', 'matplotlib', 'matplotlib.pyplot',
                 'peakutils', 'math', 'io.IOBase']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
+
+import pyfim
 
 # -- General configuration ------------------------------------------------
 
